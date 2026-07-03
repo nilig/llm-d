@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+
+# OffloadingConnector (P2P secondary tier) requires vLLM >= v0.24.0
+# (vllm-project/vllm#42285). Update the tag below once the release that
+# includes that commit is published.
+images:
+  - name: vllm/vllm-openai
+    newName: vllm/vllm-openai
+    newTag: v0.23.0 # TODO: update to the release containing vllm-project/vllm#42285
+
+patches:
+  - path: patch-decode.yaml
+  - path: patch-prefill.yaml
+  - path: patch-sidecar.yaml
