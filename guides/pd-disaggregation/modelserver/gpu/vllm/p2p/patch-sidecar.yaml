@@ -10,6 +10,6 @@ spec:
           args:
             - --port=8000
             - --vllm-port=8200
-            - --kv-connector=p2p
+            - --kv-connector=offloading
             - --zap-log-level=1
             - --secure-proxy=false

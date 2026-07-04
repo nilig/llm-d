@@ -59,7 +59,7 @@ kubectl logs -n ${NAMESPACE} \
 
 Expected startup line:
 ```
-{"msg":"Proxy configuration","config":"{\"KVConnector\":\"p2p\",\"P2PConnectorPort\":7777,...}"}
+{"msg":"Proxy configuration","config":"{\"KVConnector\":\"offloading\",\"P2PConnectorPort\":7777,...}"}
 ```
 
 Expected per-request line (one per inference request):
