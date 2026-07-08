@@ -18,6 +18,11 @@ spec:
             - '{"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":209715200,"secondary_tiers":[{"type":"p2p","host":"$(POD_IP)","port":7777}]}}'
             - "--port=8200"
           env:
+            # Block hashes must be identical across P/D peers for the
+            # decoder's fetch to match the prefiller's stored blocks; vLLM
+            # seeds them per process unless PYTHONHASHSEED is pinned.
+            - name: PYTHONHASHSEED
+              value: "0"
             - name: HF_TOKEN
               valueFrom:
                 secretKeyRef:

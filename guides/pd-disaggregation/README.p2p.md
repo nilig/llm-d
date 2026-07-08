@@ -15,6 +15,7 @@ This guide deploys `meta-llama/Llama-3.1-8B-Instruct` with prefill-decode disagg
 - At least 3 GPUs (2 prefill + 1 decode). Adjust replicas to fit your cluster.
 - Decode pod must use `--data-parallel-size=1`. Wide-EP (DP > 1) is not yet supported with this connector (llm-d/llm-d-router#1889).
 - A valid HuggingFace token with access to `meta-llama/Llama-3.1-8B-Instruct`
+- `PYTHONHASHSEED` set to the same value on every prefill and decode pod (the overlay sets `0`). vLLM seeds block hashes per process; without a pinned seed the decoder's block hashes never match the prefiller's and every KV transfer silently falls back to local recompute.
 
 All other prerequisites (client tools, namespace, HF token secret) are the same as the [main guide](./README.md#prerequisites).
 
