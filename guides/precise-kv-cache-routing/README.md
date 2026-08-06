@@ -14,7 +14,7 @@ No KV offloading and no P2P transfer are involved.
 | prefill | `manifests/lws-prefill.yaml` | 2 x LWS, one pod each: DP=8, EP enabled, TP=1, 8 GPU + 8 IB per pod, MTP speculative decoding, `--block-size 64` |
 | decode | `manifests/lws-decode.yaml` | 2 x LWS, same DP/EP shape, plus the `routing-proxy` sidecar that serves per-rank ports 8000-8007 and orchestrates the prefill call |
 | EPP | `manifests/epp.yaml` + `manifests/precise-routing.yaml` | endpoint picker with `precise-prefix-cache-producer`, `prefix-cache-affinity-filter`, `token-load-scorer`; envoy front container |
-| tokenizer render | `manifests/render.yaml` | CPU vLLM serving the tokenizer for the EPP-side `token-producer` |
+| tokenizer render | `manifests/render.yaml` | pod-less Service fronting the prefill model servers' `/v1/*/render` endpoints for the EPP-side `token-producer` |
 | pool / RBAC / SA | `manifests/inferencepool.yaml`, `manifests/epp-rbac.yaml`, `manifests/sa-engine.yaml` | InferencePool (`inference.networking.k8s.io/v1`), namespaced EPP RBAC, engine service account |
 | envoy config | `manifests/envoy-config.yaml` | listener wiring for the EPP ext-proc |
 
@@ -42,16 +42,49 @@ pod's routing proxy drives the prefill call.
   holders defaults small; undersizing silently evicts real holders on larger
   fleets. The config ships 128 for this 4-pod cell.
 
-## Size the tokenizer render for the request rate
+## Tokenizer render: served by the model servers
 
-The render service tokenizes every request prompt for the EPP's
-token-producer, so it sits on the routing critical path. A saturated render
-does not fail loudly: every request stalls for exactly the EPP's render
-timeout (5s) and TTFT plateaus flat at ~5s while the engines idle. One CPU
-replica sustains roughly 10 req/s at ~50K-token prompts; the manifest ships
-4 replicas and the deployment should scale them with request rate and prompt
-length. A flat TTFT floor at the timeout value is the signature to check
-first.
+Every request is tokenized before it is routed, so the render call sits
+inside TTFT. Following llm-d/llm-d#2188, the render Service owns no pods: it
+fronts the prefill model servers, which expose vLLM's `/v1/*/render`
+endpoints natively, so render capacity scales with the serving fleet instead
+of saturating a separately-scheduled pool. Prefill pods are selected rather
+than decode because the decode pods' port 8000 belongs to the routing-proxy
+sidecar. Notes:
+
+- Tokenization CPU competes with serving on the prefill pods; the render
+  call is a synchronous hop to a serving pod on the request path.
+- Until the first prefill is Ready the Service has no endpoints and
+  `token-producer` calls fail - deploy order below accounts for this only
+  at steady state, so expect routing to start working once prefills are up.
+- A dedicated GPU-less `vllm launch render` pool remains an option when
+  serving CPU is contended; if used, size it to the request rate - a
+  saturated render stalls every request at the EPP's 5s render timeout and
+  TTFT plateaus flat at that value while engines idle.
+
+## CPU-tier weight in the precise index
+
+The precise index scores endpoints by a device-tier-weighted block count:
+blocks resident in GPU count 1.0 and blocks held only in the CPU tier count
+0.8 by default, so the affinity scoring mildly prefers a GPU-resident holder
+over one that must restore from CPU. The weights are configurable on the
+producer:
+
+```yaml
+- type: precise-prefix-cache-producer
+  parameters:
+    indexerConfig:
+      kvCacheBackendConfigs:
+      - name: gpu
+        weight: 1.0
+      - name: cpu
+        weight: 0.8
+```
+
+Raise the CPU weight toward 1.0 when CPU-tier restores are cheap relative
+to recompute (large prefixes, fast host memory) so CPU-tier holders attract
+their prefixes' requests; lower it when restores are expensive enough that
+a marginally-shorter GPU-resident match should win.
 
 ## Data-parallel ranks and port binding
 
