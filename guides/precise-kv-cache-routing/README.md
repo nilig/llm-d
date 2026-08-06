@@ -102,14 +102,23 @@ so verify the mechanism before trusting any behavior.
 1. **Every rank's KV-event socket is subscribed.** The EPP should hold one
    ZMQ connection per rank per engine pod (32 for this 4-pod x DP8 cell):
 
+   Check from the engine side (works with distroless EPP images), counting
+   established connections from the EPP pod IP near the KV-events port range:
+
    ```bash
-   kubectl -n $NS exec deploy/<epp-deploy> -c epp -- \
-     sh -c 'cat /proc/net/tcp | awk "{print \$3}" | grep -ci ":15B5"'
-   # 15B5 hex = 5557; expect endpoints x DP_SIZE_LOCAL
+   EPP_IP=$(kubectl -n $NS get pod -l app=<epp-app-label> -o jsonpath='{.items[0].status.podIP}')
+   kubectl -n $NS exec <engine-pod> -c vllm -- python3 -c "
+   hx=''.join(f'{int(o):02X}' for o in reversed('$EPP_IP'.split('.')))
+   print(sum(1 for l in open('/proc/net/tcp')
+             if len(l.split())>3 and l.split()[3]=='01'
+             and l.split()[2].split(':')[0]==hx))"
+   # expect DP_SIZE_LOCAL KV-event connections per engine pod
    ```
 
-   Poll it rather than sampling once; a count below the expected total means
-   a pod's publishers are on the wrong ports (see the ranks section above).
+   Poll it rather than sampling once - subscriptions are not established the
+   moment engines report Ready, and a single early sample reads 0. A stable
+   count below the expected total means a pod's publishers are on the wrong
+   ports (see the ranks section above).
 
 2. **The index scores real prefixes.** Send the same long prompt twice and
    watch the EPP debug logs score a non-zero prefix match on the second
