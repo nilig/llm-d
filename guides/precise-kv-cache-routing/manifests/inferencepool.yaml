@@ -3,7 +3,6 @@ kind: InferencePool
 metadata:
   name: agentx-slo
 spec:
-  appProtocol: http
   endpointPickerRef:
     failureMode: FailOpen
     group: ''

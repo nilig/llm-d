@@ -24,6 +24,9 @@ pod's routing proxy drives the prefill call.
 
 ## Prerequisites
 
+- **InferencePool CRD: GIE bundle >= v1.5.0-rc.2.** The pool declares all
+  eight per-rank target ports; earlier bundles (v1.0.x) cap `targetPorts` at
+  one item and reject the manifest.
 - **EPP: a nightly build containing llm-d-router#2233.** Each engine pod
   serves DP ranks on distinct ports, and every rank publishes its own
   KV-event stream. Before #2233 the EPP attributed those per-rank streams to
