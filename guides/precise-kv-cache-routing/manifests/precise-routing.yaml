@@ -20,6 +20,13 @@ plugins:
       kvBlockIndexConfig:
         inMemoryConfig:
           podCacheSize: 128
+      # Device-tier scoring weights, mirroring the approximate (prefix-aware)
+      # guide's gpu:cpu scorer weights of 5:2.
+      kvCacheBackendConfigs:
+      - name: gpu
+        weight: 1.0
+      - name: cpu
+        weight: 0.4
     tokenProcessorConfig:
       blockSize: 64
     kvEventsConfig:

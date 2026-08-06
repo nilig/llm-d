@@ -67,8 +67,9 @@ sidecar. Notes:
 The precise index scores endpoints by a device-tier-weighted block count:
 blocks resident in GPU count 1.0 and blocks held only in the CPU tier count
 0.8 by default, so the affinity scoring mildly prefers a GPU-resident holder
-over one that must restore from CPU. The weights are configurable on the
-producer:
+over one that must restore from CPU. This guide's config sets the weights to
+gpu 1.0 / cpu 0.4, mirroring the approximate (prefix-aware) guide's gpu:cpu
+scorer weights of 5:2:
 
 ```yaml
 - type: precise-prefix-cache-producer
@@ -78,7 +79,7 @@ producer:
       - name: gpu
         weight: 1.0
       - name: cpu
-        weight: 0.8
+        weight: 0.4
 ```
 
 Raise the CPU weight toward 1.0 when CPU-tier restores are cheap relative
