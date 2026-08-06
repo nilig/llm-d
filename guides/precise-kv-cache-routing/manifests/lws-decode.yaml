@@ -1,0 +1,231 @@
+apiVersion: leaderworkerset.x-k8s.io/v1
+kind: LeaderWorkerSet
+metadata:
+  labels:
+    llm-d.ai/model: GLM-5.2-FP8
+    llm-d.ai/role: decode
+  name: glm-5-2-decode
+spec:
+  replicas: 2
+  leaderWorkerTemplate:
+    restartPolicy: RecreateGroupOnPodRestart
+    size: 1
+    workerTemplate:
+      metadata:
+        labels:
+          llm-d.ai/inference-serving: 'true'
+          llm-d.ai/model: GLM-5.2-FP8
+          llm-d.ai/role: decode
+      spec:
+        initContainers:
+        # The P/D routing proxy: receives requests on the per-rank 8000-8007
+        # ports the EPP targets, orchestrates the prefill call, and forwards
+        # to the local vLLM rank on 8200-8207.
+        - name: routing-proxy
+          args:
+          - --port=8000
+          - --vllm-port=8200
+          - --data-parallel-size=8
+          - --kv-connector=nixlv2
+          - --zap-log-level=1
+          - --secure-proxy=false
+          - --enable-prefiller-sampling
+          image: <llm-d-routing-sidecar-nightly-image>
+          imagePullPolicy: Always
+          ports:
+          - {containerPort: 8000, name: rank0, protocol: TCP}
+          - {containerPort: 8001, name: rank1, protocol: TCP}
+          - {containerPort: 8002, name: rank2, protocol: TCP}
+          - {containerPort: 8003, name: rank3, protocol: TCP}
+          - {containerPort: 8004, name: rank4, protocol: TCP}
+          - {containerPort: 8005, name: rank5, protocol: TCP}
+          - {containerPort: 8006, name: rank6, protocol: TCP}
+          - {containerPort: 8007, name: rank7, protocol: TCP}
+          resources: {}
+          restartPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+        containers:
+        - name: vllm
+          command: ["/bin/bash", "-c"]
+          args:
+          - |
+            find /dev/shm -type f -delete
+
+            # Scale MAX_TOKENS with number of decode pods
+            export MAX_TOKENS=$(( ${MAX_TOKENS_PER_NODE:-128} * LWS_GROUP_SIZE ))
+
+            # Wide-EP (multi-node): reserve VRAM for NVSHMEM symmetric heap
+            GPU_MEM_UTIL=${DECODE_GPU_MEM_UTIL:-0.95}
+
+            # DeepEP low-latency requires: qp_depth >= (max_dispatch_tokens + 1) * 2
+            export NVSHMEM_QP_DEPTH=$(( (MAX_TOKENS + 1) * 2 ))
+
+            MTP_ARGS=""
+            if [ "${ENABLE_MTP:-1}" = "1" ]; then
+              MTP_ARGS="--speculative-config {\"method\":\"mtp\",\"num_speculative_tokens\":${MTP_NUM_TOKENS:-3}}"
+            fi
+
+            # Same global-DP-rank port compensation as the prefill manifest;
+            # see llm-d-router issue #2227.
+            START_RANK=$(( ${LWS_WORKER_INDEX:-0} * DP_SIZE_LOCAL ))
+            KV_EVENTS_BASE=$((5557 - START_RANK))
+            KV_EVENTS_ARGS="--kv-events-config {\"enable_kv_cache_events\":true,\"publisher\":\"zmq\",\"endpoint\":\"tcp://*:${KV_EVENTS_BASE}\",\"topic\":\"kv@${POD_IP}:8000@zai-org/GLM-5.2-FP8\"}"
+
+            KV_TRANSFER_CONFIG='{"kv_connector":"NixlConnector",
+                                 "kv_role":"kv_both",
+                                 "kv_load_failure_policy":"fail"}'
+
+            exec vllm serve $MTP_ARGS --kv-cache-dtype fp8 \
+              zai-org/GLM-5.2-FP8 \
+              --port 8200 \
+              --trust-remote-code \
+              --gpu-memory-utilization $GPU_MEM_UTIL \
+              --max-model-len ${MAX_MODEL_LEN:-120000} \
+              --disable-access-log-for-endpoints=/health,/metrics \
+              --data-parallel-multi-port-external-lb \
+              --data-parallel-supervisor-port=8208 \
+              --enable-expert-parallel \
+              --tensor-parallel-size $TP_SIZE \
+              --max-num-batched-tokens ${MAX_TOKENS} \
+              --max-num-seqs ${MAX_TOKENS} \
+              --data-parallel-size $((LWS_GROUP_SIZE * DP_SIZE_LOCAL)) \
+              --data-parallel-size-local $DP_SIZE_LOCAL \
+              --data-parallel-address ${LWS_LEADER_ADDRESS} \
+              --data-parallel-rpc-port 5555 \
+              --data-parallel-start-rank $START_RANK \
+              --block-size 64 \
+              $KV_EVENTS_ARGS \
+              --kv_transfer_config "$KV_TRANSFER_CONFIG" \
+              --all2all-backend deepep_low_latency \
+              --moe-backend deep_gemm \
+              --reasoning-parser glm45 \
+              --tool-call-parser glm47 \
+              --enable-auto-tool-choice
+          env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          # Block hashes must match across every engine process and the EPP.
+          - name: PYTHONHASHSEED
+            value: '0'
+          - name: HF_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: HF_TOKEN
+                name: llm-d-hf-token
+          - name: HF_HOME
+            value: /mnt/hf-cache
+          - name: MAX_TOKENS_PER_NODE
+            value: '128'
+          - name: MAX_MODEL_LEN
+            value: '120000'
+          - name: ENABLE_MTP
+            value: '1'
+          - name: MTP_NUM_TOKENS
+            value: '3'
+          - name: VLLM_USE_V2_MODEL_RUNNER
+            value: '0'
+          - name: VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS
+            value: '1'
+          - name: VLLM_RANDOMIZE_DP_DUMMY_INPUTS
+            value: '1'
+          - name: DP_SIZE_LOCAL
+            value: '8'
+          - name: TP_SIZE
+            value: '1'
+          - name: TRITON_LIBCUDA_PATH
+            value: /usr/lib64
+          - name: VLLM_SKIP_P2P_CHECK
+            value: '1'
+          - name: VLLM_USE_DEEP_GEMM
+            value: '1'
+          - name: NVIDIA_GDRCOPY
+            value: enabled
+          - name: NVSHMEM_REMOTE_TRANSPORT
+            value: ibgda
+          - name: NVSHMEM_IB_ENABLE_IBGDA
+            value: 'true'
+          - name: NVSHMEM_BOOTSTRAP_UID_SOCK_IFNAME
+            value: eth0
+          - name: GLOO_SOCKET_IFNAME
+            value: eth0
+          - name: NCCL_SOCKET_IFNAME
+            value: eth0
+          - name: VLLM_HTTP_TIMEOUT_KEEP_ALIVE
+            value: '120'
+          - name: VLLM_NIXL_SIDE_CHANNEL_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: NCCL_IB_HCA
+            value: ibp
+          - name: NVSHMEM_HCA_PREFIX
+            value: ibp
+          - name: VLLM_LOGGING_LEVEL
+            value: INFO
+          - name: CUDA_CACHE_PATH
+            value: /var/cache/vllm/cuda
+          - name: CCACHE_DIR
+            value: /var/cache/vllm/ccache
+          - name: VLLM_CACHE_ROOT
+            value: /var/cache/vllm/vllm
+          - name: FLASHINFER_WORKSPACE_BASE
+            value: /var/cache/vllm/flashinfer
+          image: <vllm-nightly-image>
+          imagePullPolicy: Always
+          ports:
+          - {containerPort: 8200, name: dp0, protocol: TCP}
+          - {containerPort: 8201, name: dp1, protocol: TCP}
+          - {containerPort: 8202, name: dp2, protocol: TCP}
+          - {containerPort: 8203, name: dp3, protocol: TCP}
+          - {containerPort: 8204, name: dp4, protocol: TCP}
+          - {containerPort: 8205, name: dp5, protocol: TCP}
+          - {containerPort: 8206, name: dp6, protocol: TCP}
+          - {containerPort: 8207, name: dp7, protocol: TCP}
+          - {containerPort: 8208, name: supervisor, protocol: TCP}
+          livenessProbe:
+            failureThreshold: 3
+            httpGet: {path: /health, port: supervisor}
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet: {path: /readyz, port: supervisor}
+            periodSeconds: 10
+            timeoutSeconds: 5
+          startupProbe:
+            failureThreshold: 2700
+            httpGet: {path: /health, port: supervisor}
+            periodSeconds: 1
+          resources:
+            limits: &r
+              cpu: '32'
+              ephemeral-storage: 1Ti
+              memory: 1500Gi
+              nvidia.com/gpu: '8'
+              rdma/ib: '8'
+            requests: *r
+          securityContext:
+            capabilities:
+              add: [IPC_LOCK, SYS_RAWIO]
+            runAsGroup: 0
+            runAsUser: 0
+          volumeMounts:
+          - {mountPath: /dev/shm, name: dshm}
+          - {mountPath: /mnt/hf-cache, name: hf-cache}
+          - {mountPath: /var/cache/vllm, name: jit-cache}
+        serviceAccountName: glm-5-2
+        volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1500Gi
+        - name: hf-cache
+          hostPath: {path: /mnt/local/hf-cache, type: DirectoryOrCreate}
+        - name: jit-cache
+          hostPath: {path: /mnt/local/jit-cache, type: DirectoryOrCreate}
+  networkConfig:
+    subdomainPolicy: Shared
