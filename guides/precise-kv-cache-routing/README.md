@@ -42,6 +42,17 @@ pod's routing proxy drives the prefill call.
   holders defaults small; undersizing silently evicts real holders on larger
   fleets. The config ships 128 for this 4-pod cell.
 
+## Size the tokenizer render for the request rate
+
+The render service tokenizes every request prompt for the EPP's
+token-producer, so it sits on the routing critical path. A saturated render
+does not fail loudly: every request stalls for exactly the EPP's render
+timeout (5s) and TTFT plateaus flat at ~5s while the engines idle. One CPU
+replica sustains roughly 10 req/s at ~50K-token prompts; the manifest ships
+4 replicas and the deployment should scale them with request rate and prompt
+length. A flat TTFT floor at the timeout value is the signature to check
+first.
+
 ## Data-parallel ranks and port binding
 
 vLLM binds each rank-indexed auxiliary listener - the ZMQ KV-event publisher

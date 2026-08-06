@@ -4,7 +4,7 @@ metadata:
   name: glm-5-2-render
 spec:
   progressDeadlineSeconds: 600
-  replicas: 2
+  replicas: 4
   revisionHistoryLimit: 10
   selector:
     matchLabels:
