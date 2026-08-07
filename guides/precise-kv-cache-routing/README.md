@@ -131,12 +131,28 @@ kubectl -n $NS apply -f manifests/lws-decode.yaml
 Engine boot is roughly 15-25 minutes per pod (weights, DeepEP/NVSHMEM init,
 CUDA graphs).
 
-## Verify the precise index is live
+## Verify render and the precise index are live
 
-Routing quality degrades silently when the event streams are not connected,
-so verify the mechanism before trusting any behavior.
+Verify tokenization and the event streams before trusting routing behavior.
 
-1. **Every rank's KV-event socket is subscribed.** The EPP should hold one
+1. **Render returns token IDs through its Service.** This gate fails on an
+   empty selector, a wrong `targetPort`, or an unavailable render API:
+
+   ```bash
+   kubectl run render-check --rm -i --restart=Never \
+     --image=python:3.12-alpine --namespace="$NS" -- \
+     python -c '
+   import json, urllib.request
+   data = json.dumps({"model": "zai-org/GLM-5.2-FP8", "prompt": "render check", "max_tokens": 1}).encode()
+   request = urllib.request.Request("http://glm-5-2-render:8000/v1/completions/render", data=data, headers={"Content-Type": "application/json"})
+   with urllib.request.urlopen(request, timeout=10) as response:
+       body = json.load(response)
+   assert isinstance(body, list) and body and body[0].get("token_ids"), body
+   print(body[0]["token_ids"])
+   '
+   ```
+
+2. **Every rank's KV-event socket is subscribed.** The EPP should hold one
    ZMQ connection per rank per engine pod (32 for this 4-pod x DP8 cell):
 
    Check from the engine side (works with distroless EPP images), counting
@@ -157,11 +173,11 @@ so verify the mechanism before trusting any behavior.
    count below the expected total means a pod's publishers are on the wrong
    ports (see the ranks section above).
 
-2. **The index scores real prefixes.** Send the same long prompt twice and
+3. **The index scores real prefixes.** Send the same long prompt twice and
    watch the EPP debug logs score a non-zero prefix match on the second
    request, or compare `vllm:prefix_cache_hits` deltas on the routed pod.
 
-3. **Affinity + load routing behaves.** Repeated distinct-session requests
+4. **Affinity + load routing behaves.** Repeated distinct-session requests
    with a shared prefix should concentrate on the prefix holder until its
    modeled load (`token-load-scorer` with `peakPrefillThroughput`) pushes
    overflow to other pods.
