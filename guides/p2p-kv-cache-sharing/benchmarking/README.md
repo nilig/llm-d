@@ -55,13 +55,11 @@ next to this file:
 * [`epp-load-p2p.yaml`](epp-load-p2p.yaml) - load-balanced placement + the
   P2P pull (`minCachedTokenDelta: 2048`, from the crossover below).
 
-A second arm set is the wide-EP testbed's (`GLM-5.2-FP8`, 753B):
-`epp-glm-precise{,-p2p}.yaml` at `minCachedTokenDelta: 16384`, measured
-in the [wide-EP section](#wide-ep-testbed-glm-52-fp8) below, and the
-`epp-glm-loadfirst{,-p2p}.yaml` pair - the testbed's load-spill payoff
-benchmark (queue weight 3 over affinity weight 1, with and without
-`p2p-source-producer`), the matched pair behind the -67% TTFT / 2.7x
-result in the GLM results page.
+The wide-EP testbed (`GLM-5.2-FP8`, 753B) ships two arm sets. The repeated
+C64 policy comparison uses the exact
+`epp-glm-c64-{approx,approx-p2p,precise,precise-p2p}.yaml` configurations.
+The synthetic load-spill A/B uses `epp-glm-loadfirst{,-p2p}.yaml`; its
+placement is identical across the pair, so it isolates the source producer.
 
 For a defensible A/B, run arm pairs twice with the order alternated:
 whichever arm runs second inherits warm CPU tiers, and the alternation both
@@ -87,7 +85,8 @@ headline margin is not a P2P margin. Read them for what they are:
 | Scenario | The pull-isolating pair | Isolates the pull? |
 |---|---|---|
 | Step 0 | recompute vs pull, same pod pair, no routing | **yes** |
-| Wide-EP (GLM) | `precise` vs `precise + pull` | **yes** |
+| Wide-EP load spill (GLM) | `load-first` vs `load-first + pull` | **yes** |
+| Wide-EP C64 (GLM) | `approximate` vs `precise + pull` | **no** - complete-policy comparison; the single-factor arms have one observation each |
 | Uniform pool | `load` vs `load + P2P` | **yes** |
 | Hot set | `load` vs `load + P2P` | **yes** |
 | Document Q&A | `affinity` vs `affinity + P2P` | partly - that pair isolates it, but the winning arm (`load + P2P`) also changes placement |
@@ -100,12 +99,10 @@ P2P deltas.
 
 The isolating pairs are where the feature's value is established: Step 0
 (-56% to -88% TTFT with RDMA), the uniform pool (+143% sustained rate at 24
-req/s) and the hot set (+224% and 274 client-timeout failures eliminated at
-48 req/s). The wide-EP precise pair is a mechanism-verified null on the
-fully-fixed stack - every sampled source evaluation ties at delta 0, the
-placement rule holding exactly (see the wide-EP section). The cross-placement comparisons show what the resulting
-*deployment* does - the number an operator ultimately cares about - but
-attribute their margin to the placement change as much as to the pull.
+req/s), the hot set (+224% and 274 client-timeout failures eliminated at
+48 req/s), and GLM load spill (-67% mean TTFT and 2.7x throughput). The C64
+comparison answers which complete deployment carries more successful work;
+its margin cannot be assigned to P2P alone.
 
 One result worth stating plainly because it recurs: **under affinity
 placement the pull is a fallback, not an established throughput
@@ -306,40 +303,64 @@ many concurrent, multi-turn sessions each pinned to an owner pod.
 
 ## Wide-EP testbed (GLM-5.2-FP8)
 
-The mechanism at the other end of the scale: `zai-org/GLM-5.2-FP8` (753B
-MoE), one prefill + one decode instance, each 16-way data/expert-parallel
-across 2 pods (32x H200). The workload replays recorded agentic traces (the
-SemiAnalysis Weka corpus) with aiperf at concurrencies 32/64/128; the shipped
-`epp-glm-*.yaml` arms are the precise pair (pull on or off) and the
-load-first pair; the historical grid additionally crossed in an
-approximate-index pair, retained only in the quarantined results-page
-record and not shipped. `minCachedTokenDelta: 16384` was the
-overlay-era crossover (dead tie at 13,648 tokens); on the upstream tier the
-pull floor fell to ~1.25 s and the tie moved to ~8.7K tokens, so new
-deployments should set 12,288 - the calibration recipe measures it, and its
-paired no-pull control (0.0 MB moved without the parameter, 1,138.2 MB with
-it at 12K) is what makes the measurement trustworthy.
+The GLM tests use two distinct 32x H200 topologies. The crossover and
+synthetic load-spill tests use one 16-way prefill instance and one 16-way
+decode instance. The C64 policy comparison uses two prefill pods and two
+decode pods, each with DP 8 and TP 1.
 
-Measured on the fully-fixed stack (upstream vLLM tier, rank-aware source
-addressing, the router's prefix index sized to the rank-endpoint count),
-the precise pair is a **mechanism-verified null**: live sampling captured
-115 source evaluations and every one ties at a cached-token delta of
-exactly 0 (52 are self-matches), so no `minCachedTokenDelta` fires and the
-arms behave identically - medians agree within 1% and the TTFT tail
-spread across three runs (p99 17.7-24.6 s) is run-to-run variance. That is
-the placement rule holding exactly at 753B: a consistent index under
-precise affinity leaves the pull nothing to repair. The overlay-era wins
-were real transfers triggered by index-eviction divergence that the
-index sizing fix has since removed; that ladder is quarantined as a
-historical reproduction record in the results page. The pull's measured
-territory on this testbed is load-first placement - the matched
-`epp-glm-loadfirst{,-p2p}` pair (-67% mean TTFT, 2.7x throughput).
-A cold engine replica behind an intact router is a plausible further
-case and is unmeasured; a restarted ROUTER is not one (both index modes
-lose the pre-restart cache map, and measured restart-recovery runs
-produced zero pulls). Full tables, crossover sweep, and the quarantined
-overlay-era grid:
-[../benchmark-results/glm-5.2-h200.md](../benchmark-results/glm-5.2-h200.md).
+The repeated C64 comparison runs these exact configurations:
+
+* [`epp-glm-c64-approx.yaml`](epp-glm-c64-approx.yaml) - calibrated
+  approximate routing without P2P.
+* [`epp-glm-c64-approx-p2p.yaml`](epp-glm-c64-approx-p2p.yaml) - the same
+  approximate policy with the source producer.
+* [`epp-glm-c64-precise.yaml`](epp-glm-c64-precise.yaml) - DP-aware precise
+  KV events without the source producer.
+* [`epp-glm-c64-precise-p2p.yaml`](epp-glm-c64-precise-p2p.yaml) - the precise
+  policy with the source producer.
+
+Each arm starts after all four engine pods receive new UIDs. Run AIPerf with
+the same public trace, seed, admission window, and drain:
+
+```bash
+aiperf profile \
+  --url "$EPP_URL" \
+  --model zai-org/GLM-5.2-FP8 \
+  --endpoint-type chat \
+  --streaming \
+  --public-dataset semianalysis_cc_traces_weka_062126 \
+  --no-fixed-schedule \
+  --concurrency 64 \
+  --num-dataset-entries 48 \
+  --synthesis-max-isl 115000 \
+  --synthesis-max-osl 2048 \
+  --benchmark-duration 300 \
+  --benchmark-grace-period 120 \
+  --random-seed 67 \
+  --ui None \
+  --output-artifact-dir "$ARTIFACT_DIR"
+```
+
+Count requests only if they reach a terminal state within the 300-second
+admission window. Across three order-alternated comparisons, precise+P2P
+improves successful throughput over approximate without P2P by 5.18% to
+13.77%, with a 9.97% paired median. The p90 end-to-end latency improves in
+two windows and regresses by 1.17% in the reversed-order window, so the
+repeatable result is capacity rather than a latency guarantee.
+
+One DEBUG window includes all four arms. Approximate+P2P is -2.17% and
+precise without P2P is -2.71% relative to approximate without P2P, while
+precise+P2P is +9.97%. The single-factor arms have one observation each, so
+the result supports an interaction hypothesis rather than isolating either
+factor. Mechanism evidence for precise+P2P includes 12 peer-load submissions,
+12 unique transfer IDs, 17 successful transfer rounds, and 6,342 transferred
+KV blocks. Generic NIXL and offload counters are not P2P-only byte counters.
+
+The C64 configurations use `minCachedTokenDelta: 2048`, below the separate
+upstream-tier crossover recommendation of 12,288 tokens. Use the crossover
+recipe to calibrate production deployments. Full tables, mechanism evidence,
+crossover sweep, and the quarantined overlay-era grid are in
+[the GLM results page](../benchmark-results/glm-5.2-h200.md).
 
 ## Run hygiene
 
@@ -348,11 +369,10 @@ overlay-era grid:
 * `report.request_lifecycle.per_request: true` - per-request records make
   hangs and tails attributable.
 * Record pull evidence per arm. For a scenario preregistered to pull
-  (load-first placement, fresh-source seeding), zero engagement means a
-  misconfigured run; for an affinity arm a mechanism-verified zero is a
-  legitimate null (the fixed GLM precise pair is exactly that). External-
-  hit counters include local CPU restores, so they cannot prove peer
-  transfers on their own.
+  (load-first placement, fresh-source seeding, or the GLM C64 precise+P2P
+  policy), zero engagement means a misconfigured run. External-hit counters
+  include local CPU restores, so they cannot prove peer transfers on their
+  own.
 * Diff engine-side timing sums (`vllm:request_queue_time_seconds`,
   `vllm:request_prefill_time_seconds`, `vllm:time_to_first_token_seconds`)
   across each stage and reconcile them with client-observed TTFT. Client
