@@ -8,7 +8,8 @@ over NIXL. Routing uses the llm-d inference gateway with the precise
 (KV-event-fed) prefix index, `minCachedTokenDelta: 16384` (set from the
 overlay-era crossover; the current upstream-tier crossover recommends
 `12288` - see below). The page carries the pull-versus-recompute crossover,
-the load-spill payoff pair, and - quarantined at the end - the
+the load-spill payoff pair, an independent 2-prefill/2-decode agentic sweep,
+and - quarantined at the end - the
 overlay-era four-arm grid on recorded agentic traces (the SemiAnalysis
 Weka corpus, aiperf at concurrencies 32/64/128). The precise and load-first arm configurations ship as the
 `epp-glm-*.yaml` files in [../benchmarking/](../benchmarking/README.md);
@@ -116,6 +117,78 @@ per-repetition transfer counters; pull-path liveness on this build is
 established separately by the correlated single-request proof (per-rank
 attribution, source accept on the rank-offset port, consumer load equal
 to tokens x ~93 KB, HTTP 200).
+
+## Independent 2P2D agentic sweep (directional)
+
+Maroon's August 10 Kermit sweep exercises a larger disaggregated cell: two
+8-way data/expert-parallel prefill pods and two 8-way decode pods (32x H200),
+GLM-5.2-FP8, vLLM block size 64, and a 100 GiB CPU offload tier per prefill
+rank. AIPerf replays 48 entries from the SemiAnalysis Weka coding-agent trace
+corpus with child branches and joins preserved, seed 67, and no fixed root
+schedule. Concurrency 16 and 32 run for 900 seconds; concurrency 64 is a
+matched 300-second saturation cut.
+
+The valid comparison is calibrated approximate routing without P2P versus a
+precise+P2P deployment bundle. Both modes use the same measured prefill rate
+(`peakPrefillThroughput: 5541`) and 55-second affinity penalty budget. The
+precise bundle additionally uses DP-aware KV events, speculative indexing,
+GPU/CPU cache weights 1.0/0.4, and `p2p-source-producer` with
+`minCachedTokenDelta: 2048`.
+
+| concurrency | mode | window status | successful req/s | input Ktok/s | TTFT p50 (s) | TTFT p90 (s) | E2E p90 (s) | window error rate |
+|---:|---|---|---:|---:|---:|---:|---:|---:|
+| 16 | approximate | complete | 1.114 | 70.3 | 1.393 | 8.556 | 18.581 | 11.6% |
+| 16 | precise+P2P | complete | 1.168 | 73.1 | 1.602 | 5.995 | 16.508 | 11.2% |
+| 32 | approximate | complete | 2.579 | 159.8 | 1.572 | 6.943 | 19.051 | 6.0% |
+| 32 | precise+P2P | complete | 2.617 | 163.0 | 1.788 | 5.570 | 18.196 | 6.5% |
+| 64 | approximate | 300 s cut | 4.243 | 230.6 | 2.814 | 18.503 | 30.383 | 4.5% |
+| 64 | precise+P2P | 300 s cut | 4.760 | 262.0 | 2.443 | 10.799 | 24.635 | 5.6% |
+
+At concurrency 32, the last completed point with bounded queues, the bundle
+trades 13.8% worse median TTFT for 19.8% better p90 TTFT. Input throughput is
+2.0% higher, successful request throughput is 1.5% higher, and p90 end-to-end
+latency is 4.5% lower. At the concurrency-64 saturation cut, the separation is
+larger: input throughput +13.6%, successful requests/s +12.2%, p90 TTFT
+-41.6%, and p90 end-to-end latency -18.9%.
+
+This agrees with the separate no-P2P comparison on the workload-level shape:
+precise cache state helps the TTFT tail more than the median at a bounded
+operating point. It also supports the bundle-level claim that precise+P2P
+continues to carry more work after decode saturation begins. It does not
+identify how much of that gain comes from precise tracking, CPU-tier-aware
+scoring, or peer transfer.
+
+Treat the sweep as directional evidence, not a production effect-size
+estimate:
+
+* Each cell has one repetition. The concurrency-64 result is a matched cut,
+  not a completed 15-minute run.
+* The source archive contains normalized tables and analysis code, but its raw
+  request JSONL and rank time series are external links. The reported values
+  are internally consistent, but cannot be independently recomputed from the
+  archive alone.
+* Binary provenance needs cleanup before exact reproduction. The archive's
+  `reference/images.env` pins different EPP and vLLM image digests from its
+  exported live deployment and LeaderWorkerSet snapshots.
+* The main concurrency-64 window metrics use the same 300-second cutoff. The
+  archive's separate subagent-latency analyzer does not apply that cutoff and
+  sees materially different branch samples, so its concurrency-64 subagent
+  p90 is not used here.
+* The 2,048-token pull threshold is below this page's measured crossover and
+  the 12,288-token recommendation. Pulling marginal deltas can pay a fixed
+  transfer cost that recompute would avoid; this is consistent with the p50
+  TTFT regression at concurrency 16 and 32. A repeated sweep at 12,288 is the
+  relevant follow-up.
+* The archive does not correlate EPP source headers, sidecar injections, and
+  successful engine transfer rounds or byte counts. Its external-hit metric
+  also includes cache outside the selected GPU tier, so it is evidence for
+  external reuse, not P2P byte attribution.
+* Window error rates are similar between the two valid modes but remain
+  4.5-11.6%. The archive does not include the raw error records needed to
+  classify them.
+* Approximate+P2P is excluded from the table. All three of its runs required
+  forced cancellation, so completed-request latency from that mode is a
+  survivor-biased control rather than a valid result.
 
 ## Historical: the overlay-era four-arm ladder (superseded)
 
