@@ -1,3 +1,6 @@
+# C64 single-factor control: DP-aware precise routing without P2P.
+# podCacheSize 128 covers 64 rank-tier holders with headroom in the 2P2D cell.
+# The token-producer URL is testbed-specific; adjust it for the deployment.
 apiVersion: llm-d.ai/v1alpha1
 kind: EndpointPickerConfig
 plugins:

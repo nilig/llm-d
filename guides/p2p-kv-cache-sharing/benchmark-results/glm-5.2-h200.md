@@ -138,6 +138,11 @@ completions during the 120-second drain do not enter the result. The fixed
 window measures successful capacity under saturation, not the time required
 to complete the full workload.
 
+The per-run exact-window summaries and the aggregate used for the tables are
+committed in the [C64 data bundle](./data/glm-5.2-c64/README.md). The bundle
+records the campaign roles, accounting rule, raw metric precision, and
+formulas used to derive the published changes.
+
 ### Repeated complete-policy comparison
 
 The repeated baseline is calibrated approximate routing without P2P. The
@@ -161,8 +166,8 @@ reversed-order observation is 1.17% worse. The supported result is a repeated
 capacity improvement, not a guaranteed latency reduction in every fixed
 window.
 
-Precise+P2P successful throughput is 3.383, 3.387, and 3.383 requests/s, a
-0.046% population coefficient of variation. Approximate throughput ranges
+Precise+P2P successful throughput is 3.383, 3.387, and 3.383 requests/s, with
+a population coefficient of variation below 0.1%. Approximate throughput ranges
 from 2.977 to 3.217 requests/s, a 3.19% coefficient of variation. Three
 observations are not enough to characterize a distribution, but the candidate
 is more stable in this sample.

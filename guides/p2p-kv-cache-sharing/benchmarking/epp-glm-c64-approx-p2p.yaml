@@ -1,3 +1,4 @@
+# C64 single-factor control: calibrated approximate routing with P2P.
 apiVersion: llm-d.ai/v1alpha1
 kind: EndpointPickerConfig
 plugins:

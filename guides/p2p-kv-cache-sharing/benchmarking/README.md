@@ -55,11 +55,15 @@ next to this file:
 * [`epp-load-p2p.yaml`](epp-load-p2p.yaml) - load-balanced placement + the
   P2P pull (`minCachedTokenDelta: 2048`, from the crossover below).
 
-The wide-EP testbed (`GLM-5.2-FP8`, 753B) ships two arm sets. The repeated
-C64 policy comparison uses the exact
-`epp-glm-c64-{approx,approx-p2p,precise,precise-p2p}.yaml` configurations.
-The synthetic load-spill A/B uses `epp-glm-loadfirst{,-p2p}.yaml`; its
-placement is identical across the pair, so it isolates the source producer.
+The wide-EP testbed (`GLM-5.2-FP8`, 753B) ships three arm sets:
+
+* `epp-glm-c64-{approx,approx-p2p,precise,precise-p2p}.yaml` for the repeated
+  C64 complete-policy comparison and its single-factor controls.
+* `epp-glm-loadfirst{,-p2p}.yaml` for the synthetic load-spill A/B; placement
+  is identical across the pair, so it isolates the source producer.
+* `epp-glm-precise{,-p2p}.yaml` for the fixed 1P1D precise-affinity check. It
+  isolates the source producer and records the mechanism-verified null where
+  every eligible cached-token delta is zero.
 
 For a defensible A/B, run arm pairs twice with the order alternated:
 whichever arm runs second inherits warm CPU tiers, and the alternation both
@@ -85,6 +89,7 @@ headline margin is not a P2P margin. Read them for what they are:
 | Scenario | The pull-isolating pair | Isolates the pull? |
 |---|---|---|
 | Step 0 | recompute vs pull, same pod pair, no routing | **yes** |
+| Wide-EP precise affinity (GLM) | `precise` vs `precise + pull` | **yes** - mechanism-verified null; no source delta reaches the threshold |
 | Wide-EP load spill (GLM) | `load-first` vs `load-first + pull` | **yes** |
 | Wide-EP C64 (GLM) | `approximate` vs `precise + pull` | **no** - complete-policy comparison; the single-factor arms have one observation each |
 | Uniform pool | `load` vs `load + P2P` | **yes** |
@@ -370,9 +375,11 @@ crossover sweep, and the quarantined overlay-era grid are in
   hangs and tails attributable.
 * Record pull evidence per arm. For a scenario preregistered to pull
   (load-first placement, fresh-source seeding, or the GLM C64 precise+P2P
-  policy), zero engagement means a misconfigured run. External-hit counters
-  include local CPU restores, so they cannot prove peer transfers on their
-  own.
+  policy), zero engagement means a misconfigured run. For an affinity arm,
+  zero engagement can be a legitimate result when source evaluations prove
+  that no cached-token delta reaches the threshold; the fixed GLM 1P1D
+  precise pair is that control. External-hit counters include local CPU
+  restores, so they cannot prove peer transfers on their own.
 * Diff engine-side timing sums (`vllm:request_queue_time_seconds`,
   `vllm:request_prefill_time_seconds`, `vllm:time_to_first_token_seconds`)
   across each stage and reconcile them with client-observed TTFT. Client
