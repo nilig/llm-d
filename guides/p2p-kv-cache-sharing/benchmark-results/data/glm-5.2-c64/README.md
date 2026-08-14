@@ -18,6 +18,12 @@ The files preserve the full metric precision exported by the analysis:
   four-arm observation with both repeats and records the per-metric means,
   medians, population coefficients of variation, and paired changes.
 
+The published approximate+P2P diagnostic renamed its approximate prefix
+producer without configuring `inflight-load-producer` to read that name. Its
+raw observation remains in `four-arm-exact-window.json`, but it does not
+isolate P2P and is excluded from the three-pair aggregate. The corrected
+configuration in the benchmarking directory has no result in this bundle.
+
 The four-arm source campaign is `maroon-c64-20260813-174030`; both repeats
 belong to `maroon-c64-repeats-20260813-185900`. The copied source checksums
 are:

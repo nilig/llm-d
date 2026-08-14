@@ -1,19 +1,16 @@
 # zai-org/GLM-5.2-FP8 P2P KV Cache Sharing Benchmark on vLLM (wide-EP, H200)
 
-The benchmark runs `zai-org/GLM-5.2-FP8` (753B MoE) prefill/decode
-disaggregated, one prefill and one decode instance, each 16-way
-data/expert-parallel across 2 pods (32x H200 total), ~520K tokens of GPU KV
-and a 100 GiB CPU offload tier per rank, vLLM block size 64, KV transfers
-over NIXL. Routing uses the llm-d inference gateway with the precise
-(KV-event-fed) prefix index, `minCachedTokenDelta: 16384` (set from the
-overlay-era crossover; the current upstream-tier crossover recommends
-`12288` - see below). The page carries the pull-versus-recompute crossover,
-the load-spill payoff pair, a repeated 2-prefill/2-decode C64 policy
-comparison, and - quarantined at the end - the
-overlay-era four-arm grid on recorded agentic traces (the SemiAnalysis
-Weka corpus, aiperf at concurrencies 32/64/128). The precise and load-first arm configurations ship as the
-`epp-glm-*.yaml` files in [../benchmarking/](../benchmarking/README.md);
-the C64 comparison ships as the `epp-glm-c64-*.yaml` files.
+This page combines two 32x H200 `zai-org/GLM-5.2-FP8` (753B MoE)
+prefill/decode-disaggregated cells. The pull-versus-recompute, load-spill, and
+precise-affinity campaigns use one 16-way prefill instance and one 16-way
+decode instance with `minCachedTokenDelta: 16384`. The C64 policy comparison
+uses two 8-way prefill instances and two 8-way decode instances with
+`minCachedTokenDelta: 2048`. Both cells use vLLM block size 64, a 100 GiB CPU
+offload tier per rank, and NIXL transfers. The page also quarantines the
+overlay-era four-arm grid on recorded SemiAnalysis Weka agentic traces. The
+precise and load-first configurations ship as the `epp-glm-*.yaml` files in
+[../benchmarking/](../benchmarking/README.md); the C64 comparison ships as the
+`epp-glm-c64-*.yaml` files.
 
 ## Pull versus recompute (single request)
 
@@ -36,9 +33,10 @@ Recompute is linear at ~130-147 us/token while the pull is flat at
 about 1.25 s, so the **crossover is ~8,650 tokens**. The recommended
 setting is `minCachedTokenDelta: 12288`: 8,192 is a dead tie whose sign
 flips between runs, and 12,288 is the lowest length the sweeps call
-decisively. The benchmark campaigns on this page ran `16384` - set from
-the earlier sweep quarantined below - which sits above either measured
-tie, so their fired pulls are always in the win region.
+decisively. The 1P1D load-spill and precise-affinity campaigns ran `16384` -
+set from the earlier sweep quarantined below - which sits above either
+measured tie. The 2P2D C64 campaign instead ran `2048`, as scoped in its
+section.
 
 Two measurement controls worth repeating on any rig: at 12,288 the
 identical seeded probe *without* the injected source-pull
@@ -160,11 +158,18 @@ policy, not to precision or P2P alone.
 | paired mean | - | 3.090 | 3.384 | +9.64% | +11.77% | -8.28% |
 | paired median | - | 3.077 | 3.383 | +9.97% | +12.86% | -12.21% |
 
+The summary arm columns are the means or medians of the three arm values. The
+change columns are the means or medians of the three pairwise percentage
+changes, so a change cell is not expected to equal the ratio of the two
+summary arm cells.
+
 Successful throughput improves in all three observations. The latency signal
 is less stable: two observations improve p90 end-to-end latency while the
 reversed-order observation is 1.17% worse. The supported result is a repeated
 capacity improvement, not a guaranteed latency reduction in every fixed
-window.
+window. Latency percentiles include only successful requests that reached a
+terminal state before the cutoff, so they compare different-sized,
+right-censored populations and are directional evidence only.
 
 Precise+P2P successful throughput is 3.383, 3.387, and 3.383 requests/s, with
 a population coefficient of variation below 0.1%. Approximate throughput ranges
@@ -172,23 +177,28 @@ from 2.977 to 3.217 requests/s, a 3.19% coefficient of variation. Three
 observations are not enough to characterize a distribution, but the candidate
 is more stable in this sample.
 
-### Four-arm interaction
+### Four-arm diagnostic
 
-One DEBUG observation includes the two single-factor controls under the same
-300-second cutoff:
+One DEBUG observation includes all four intended policy combinations under
+the same 300-second cutoff:
 
 | routing | P2P | successful req/s | input Ktok/s | TTFT p50/p90 (s) | E2E p50/p90 (s) |
 |---|---:|---:|---:|---:|---:|
 | approximate | no | 3.077 | 152.916 | 2.307 / 18.863 | 9.844 / 31.634 |
-| approximate | yes | 3.010 | 148.152 | 2.005 / 21.037 | 9.086 / 33.405 |
+| approximate | yes (confounded) | 3.010 | 148.152 | 2.005 / 21.037 | 9.086 / 33.405 |
 | precise | no | 2.993 | 148.328 | 2.860 / 20.034 | 11.056 / 30.966 |
 | precise | yes | 3.383 | 172.586 | 1.997 / 15.713 | 8.463 / 27.265 |
 
-Relative to approximate routing without P2P, approximate+P2P is -2.17% and
-precise without P2P is -2.71% in successful throughput. Precise+P2P is
-+9.97%. The middle arms have one observation each, so this supports an
-interaction hypothesis rather than a repeated estimate of the individual
-effects.
+The archived approximate+P2P configuration renames
+`approx-prefix-cache-producer` to `gpu-prefix-cache-producer`, but its
+parameterless `inflight-load-producer` still reads the default producer name.
+It therefore misses the cached-prefix discount and accounts the full prompt
+as in-flight work. Relative to approximate routing without P2P, that arm is
+-2.17%, but it does not isolate P2P. Precise without P2P is -2.71%, and
+precise+P2P is +9.97%. The snapshot is retained as a diagnostic and cannot
+establish an interaction or assign the complete-policy gain to either factor.
+A corrected approximate+P2P configuration ships for a future rerun; it has no
+published result.
 
 ### Mechanism evidence
 
@@ -196,28 +206,34 @@ Across the three repeated comparisons, approximate prefill queue p90 is 12.8,
 13.7, and 13.5 requests; precise+P2P is 9.0, 8.0, and 8.0. Approximate
 external prefill hit rate is 1.66%, 2.64%, and 2.36%; precise+P2P is 38.47%,
 12.08%, and 39.93%. NIXL records zero failed transfers, failed notifications,
-and expired requests.
+and expired requests. External-hit rate establishes engagement, not the size
+of the capacity gain; queue p90 is the consistent signal across the windows.
 
 The DEBUG observation records 13 source request IDs, 12 peer-load submissions,
 12 unique transfer IDs, 17 successful transfer rounds, zero failed rounds, and
-6,342 transferred KV blocks. At the observed 3,502,592 bytes per block, the
-block count implies 22.21 GB (20.69 GiB) of peer payload. This is inferred
-payload volume, not a direct P2P-only byte counter:
-`vllm:nixl_bytes_transferred` also counts normal prefill-to-decode traffic and
-`vllm:kv_offload_load_bytes` aggregates local and peer tier loads.
+6,342 submitted KV blocks. These counters instrument different pipeline
+stages and are not expected to be one-to-one: a source directive need not
+submit a peer load, and one transfer can complete in multiple rounds. No byte
+volume is derived from the block count because the C64 offload quantum does
+not match the separate 1P1D crossover's 92.6 KB/token measurement.
+`vllm:nixl_bytes_transferred` also counts normal prefill-to-decode traffic,
+and `vllm:kv_offload_load_bytes` aggregates local and peer tier loads.
 
 The DP-aware event path does not collapse traffic onto rank 0. Across the three
 precise+P2P observations, the two rank-0 engines account for 8.3% to 17.1% of
-prefill successes; 12.5% is the perfectly even share across 16 ranks. The
-largest individual rank accounts for 11.4% to 12.3%.
+prefill successes; 12.5% is the even two-rank share across 16 ranks. The
+largest individual rank accounts for 11.4% to 12.3%, versus a 6.25% even
+per-rank share, so the observation rules out rank-0 collapse but not rank
+imbalance.
 
 ### Configuration boundary
 
 The run uses `minCachedTokenDelta: 2048`, below this page's separate GLM
 crossover recommendation of 12,288 tokens. It describes the policy as
 configured and does not establish that 2,048 is the best production setting.
-The two single-factor arms require repeated, counterbalanced observations
-before assigning the gain quantitatively to precision or P2P.
+The corrected approximate+P2P arm must be rerun, and both middle arms require
+repeated, counterbalanced observations before assigning the gain
+quantitatively to precision or P2P.
 
 ## Historical: the overlay-era four-arm ladder (superseded)
 

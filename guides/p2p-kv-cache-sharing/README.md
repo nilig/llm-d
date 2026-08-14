@@ -657,8 +657,9 @@ hardware configurations:
   deployment - 6.3x median TTFT and +50% throughput against plain NIXL P/D
   on the agentic-serving workload shape.
 - **[zai-org/GLM-5.2-FP8 on vLLM (H200, wide-EP P/D)](./benchmark-results/glm-5.2-h200.md)**:
-  the mechanism at 753B - a repeated C64 comparison where the complete
+  a repeated C64 comparison where the complete
   DP-aware precise+P2P policy improves successful throughput by a 10.0%
-  paired median over calibrated approximate routing without P2P, a
-  single-observation four-arm interaction check, and the pull-versus-recompute
-  crossover used to set the production threshold.
+  paired median over calibrated approximate routing without P2P, a replicated
+  load-spill A/B that isolates P2P, a confounded four-arm diagnostic retained
+  for provenance, and the pull-versus-recompute crossover used to set the
+  production threshold.

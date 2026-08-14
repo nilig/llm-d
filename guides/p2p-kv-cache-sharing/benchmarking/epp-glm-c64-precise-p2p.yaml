@@ -1,6 +1,6 @@
 # C64 complete-policy candidate: DP-aware precise routing with P2P.
 # podCacheSize 128 covers 64 rank-tier holders with headroom in the 2P2D cell.
-# The token-producer URL is testbed-specific; adjust it for the deployment.
+# The testbed used glm-5-2-render; the guide deployment names it render.
 apiVersion: llm-d.ai/v1alpha1
 kind: EndpointPickerConfig
 plugins:

@@ -57,18 +57,20 @@ next to this file:
 
 The wide-EP testbed (`GLM-5.2-FP8`, 753B) ships three arm sets:
 
-* `epp-glm-c64-{approx,approx-p2p,precise,precise-p2p}.yaml` for the repeated
-  C64 complete-policy comparison and its single-factor controls.
+* `epp-glm-c64-{approx,approx-p2p,precise,precise-p2p}.yaml` for the published
+  C64 complete-policy comparison and four-arm diagnostic. The archived
+  approximate+P2P arm has a documented load-accounting selector mismatch and
+  is not a clean single-factor control.
 * `epp-glm-loadfirst{,-p2p}.yaml` for the synthetic load-spill A/B; placement
   is identical across the pair, so it isolates the source producer.
 * `epp-glm-precise{,-p2p}.yaml` for the fixed 1P1D precise-affinity check. It
   isolates the source producer and records the mechanism-verified null where
   every eligible cached-token delta is zero.
 
-For a defensible A/B, run arm pairs twice with the order alternated:
-whichever arm runs second inherits warm CPU tiers, and the alternation both
-cancels that advantage and measures each arm's sensitivity to inherited
-cache state.
+For a defensible A/B, run arm pairs in both orders. When arm switches reuse
+engine pods, the second arm inherits warm CPU tiers, so alternation measures
+that sensitivity. The C64 protocol assigns new engine pod UIDs to every arm;
+its reversed order checks time drift rather than inherited cache state.
 
 Model: `openai/gpt-oss-120b`, 16x TP=1 H200 (aggregated). Sizing inputs
 measured on this rig: ~41.5 KB KV per token, ~1.22M tokens of GPU KV per pod
@@ -91,16 +93,16 @@ headline margin is not a P2P margin. Read them for what they are:
 | Step 0 | recompute vs pull, same pod pair, no routing | **yes** |
 | Wide-EP precise affinity (GLM) | `precise` vs `precise + pull` | **yes** - mechanism-verified null; no source delta reaches the threshold |
 | Wide-EP load spill (GLM) | `load-first` vs `load-first + pull` | **yes** |
-| Wide-EP C64 (GLM) | `approximate` vs `precise + pull` | **no** - complete-policy comparison; the single-factor arms have one observation each |
+| Wide-EP C64 (GLM) | `approximate` vs `precise + pull` | **no** - complete-policy comparison; the published approximate+P2P diagnostic is confounded |
 | Uniform pool | `load` vs `load + P2P` | **yes** |
 | Hot set | `load` vs `load + P2P` | **yes** |
 | Document Q&A | `affinity` vs `affinity + P2P` | partly - that pair isolates it, but the winning arm (`load + P2P`) also changes placement |
 
-Every scenario except the document-Q&A headline now carries a control arm
-with identical placement and no pull, so its margin is the pull's alone.
-Comparisons *across* placement policies (`affinity` vs `load + P2P`) answer
-a different question - which deployment to run - and should not be read as
-P2P deltas.
+The C64 comparison and the document-Q&A headline compare complete policies.
+The other scenarios carry a control arm with identical placement and no pull,
+so their margins isolate the pull. Comparisons *across* placement policies
+(`affinity` vs `load + P2P`) answer a different question - which deployment
+to run - and should not be read as P2P deltas.
 
 The isolating pairs are where the feature's value is established: Step 0
 (-56% to -88% TTFT with RDMA), the uniform pool (+143% sustained rate at 24
@@ -313,16 +315,26 @@ synthetic load-spill tests use one 16-way prefill instance and one 16-way
 decode instance. The C64 policy comparison uses two prefill pods and two
 decode pods, each with DP 8 and TP 1.
 
-The repeated C64 comparison runs these exact configurations:
+The published C64 campaign used these exact configurations:
 
 * [`epp-glm-c64-approx.yaml`](epp-glm-c64-approx.yaml) - calibrated
   approximate routing without P2P.
-* [`epp-glm-c64-approx-p2p.yaml`](epp-glm-c64-approx-p2p.yaml) - the same
-  approximate policy with the source producer.
+* [`epp-glm-c64-approx-p2p.yaml`](epp-glm-c64-approx-p2p.yaml) - the archived
+  approximate+P2P arm. Its renamed prefix producer is not selected by the
+  parameterless in-flight load producer, so the published observation is
+  confounded and retained only for provenance.
 * [`epp-glm-c64-precise.yaml`](epp-glm-c64-precise.yaml) - DP-aware precise
   KV events without the source producer.
 * [`epp-glm-c64-precise-p2p.yaml`](epp-glm-c64-precise-p2p.yaml) - the precise
   policy with the source producer.
+
+Use
+[`epp-glm-c64-approx-p2p-corrected.yaml`](epp-glm-c64-approx-p2p-corrected.yaml)
+for a future clean approximate+P2P rerun. No published result uses it.
+
+The precise arm URLs record the benchmark testbed's `glm-5-2-render` Service.
+The runnable deployment in this guide names the equivalent Service `render`;
+replace the URL when applying a benchmark arm to that deployment.
 
 Each arm starts after all four engine pods receive new UIDs. Run AIPerf with
 the same public trace, seed, admission window, and drain:
@@ -347,19 +359,23 @@ aiperf profile \
 ```
 
 Count requests only if they reach a terminal state within the 300-second
-admission window. Across three order-alternated comparisons, precise+P2P
-improves successful throughput over approximate without P2P by 5.18% to
-13.77%, with a 9.97% paired median. The p90 end-to-end latency improves in
-two windows and regresses by 1.17% in the reversed-order window, so the
-repeatable result is capacity rather than a latency guarantee.
+admission window. Across three comparisons - two approximate-first and one
+precise+P2P-first - precise+P2P improves successful throughput over
+approximate without P2P by 5.18% to 13.77%, with a 9.97% paired median. The
+p90 end-to-end latency improves in two windows and regresses by 1.17% in the
+reversed-order window, so the repeatable result is capacity rather than a
+latency guarantee. Latency percentiles include only successful terminal
+requests inside the cutoff and therefore compare different-sized,
+right-censored populations.
 
-One DEBUG window includes all four arms. Approximate+P2P is -2.17% and
-precise without P2P is -2.71% relative to approximate without P2P, while
-precise+P2P is +9.97%. The single-factor arms have one observation each, so
-the result supports an interaction hypothesis rather than isolating either
-factor. Mechanism evidence for precise+P2P includes 12 peer-load submissions,
-12 unique transfer IDs, 17 successful transfer rounds, and 6,342 transferred
-KV blocks. Generic NIXL and offload counters are not P2P-only byte counters.
+One DEBUG window includes all four intended combinations. Approximate+P2P is
+-2.17%, but its in-flight load producer reads the wrong prefix-match data key,
+so that cell does not isolate P2P. Precise without P2P is -2.71% relative to
+approximate without P2P, while precise+P2P is +9.97%. The snapshot cannot
+establish an interaction. Mechanism evidence for precise+P2P includes 12
+peer-load submissions, 12 unique transfer IDs, 17 successful transfer rounds,
+and 6,342 submitted KV blocks. Generic NIXL and offload counters are not
+P2P-only byte counters.
 
 The C64 configurations use `minCachedTokenDelta: 2048`, below the separate
 upstream-tier crossover recommendation of 12,288 tokens. Use the crossover
