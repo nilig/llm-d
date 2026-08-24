@@ -1,0 +1,109 @@
+router:
+  epp:
+    extProcPort: 9002
+    extraContainerPorts:
+    - containerPort: 5557
+      name: zmq
+      protocol: TCP
+    flags:
+      v: 2
+    image:
+      pullPolicy: Always
+      registry: ghcr.io/llm-d
+      repository: llm-d-router-endpoint-picker
+      tag: v0.10.0
+    pluginsConfigFile: pd-config.yaml
+    pluginsCustomConfig:
+      pd-config.yaml: |
+        apiVersion: llm-d.ai/v1alpha1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: disagg-headers-handler
+        - type: always-disagg-pd-decider
+        - type: disagg-profile-handler
+          parameters:
+            deciderPluginName: always-disagg-pd-decider
+        - type: prefill-filter
+        - type: decode-filter
+        - type: prefix-cache-scorer
+        - type: queue-scorer
+        - type: kv-cache-utilization-scorer
+        - type: active-request-scorer
+        schedulingProfiles:
+        - name: prefill
+          plugins:
+          - pluginRef: prefill-filter
+          - pluginRef: prefix-cache-scorer
+            weight: 3
+          - pluginRef: queue-scorer
+            weight: 2
+          - pluginRef: kv-cache-utilization-scorer
+            weight: 2
+        - name: decode
+          plugins:
+          - pluginRef: decode-filter
+          - pluginRef: active-request-scorer
+            weight: 2
+          - pluginRef: prefix-cache-scorer
+            weight: 3
+    replicas: 1
+    resources:
+      limits:
+        memory: 16Gi
+      requests:
+        cpu: '4'
+        memory: 8Gi
+    volumeMounts: []
+    volumes: []
+  extraServicePorts:
+  - name: zmq
+    port: 5557
+    protocol: TCP
+    targetPort: 5557
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8081
+  inferencePool:
+    failureMode: FailOpen
+  modelServers:
+    matchLabels:
+      llm-d.ai/guide: pd-disaggregation
+    protocol: http
+    targetPorts:
+    - number: 8000
+  monitoring:
+    interval: 10s
+    prometheus:
+      auth:
+        enabled: true
+        secretName: inference-gateway-sa-metrics-reader-secret
+      enabled: true
+    secretName: inference-gateway-sa-metrics-reader-secret
+  proxy:
+    args:
+    - --service-node
+    - envoy-sidecar
+    - --log-level
+    - warn
+    - --concurrency
+    - '8'
+    - --drain-strategy
+    - immediate
+    - --drain-time-s
+    - '60'
+    - -c
+    - /etc/envoy/envoy.yaml
+    resources:
+      limits:
+        memory: 16Gi
+      requests:
+        cpu: '4'
+        memory: 8Gi
+  tokenizer:
+    enabled: false
+  tracing:
+    otelExporterEndpoint: http://localhost:4317
+    sampling:
+      sampler: parentbased_traceidratio
+      samplerArg: '0.1'

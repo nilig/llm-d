@@ -1,0 +1,19 @@
+
+
+2026-08-24 20:18:06,792 - WARNING - ⚠️ CLI --models override (openai/gpt-oss-120b) will not propagate into decode.vllm.customCommand. Update the customCommand in your scenario to match, or remove customCommand to use the auto-generated command.
+2026-08-24 20:18:06,792 - WARNING - ⚠️ CLI --models override (openai/gpt-oss-120b) will not propagate into prefill.vllm.customCommand. Update the customCommand in your scenario to match, or remove customCommand to use the auto-generated command.
+
+
+
+
+
+
+2026-08-24 20:18:19,666 - WARNING - ⚠️     | Cluster platform type could not be identified (detection in step 00 matched none of OpenShift/GKE/Kind/Minikube); LLMDBENCH_CLUSTER_TYPE will be set to 'unrecognized' in the harness pod.
+2026-08-24 20:30:54,839 - WARNING - ⚠️     | FAST_COLLECT pipeline attempt 1/5 failed for inference-perf-qps-40-1787592376-k8zolw_1 (exit=1): unexpected end of data
+E0824 20:30:54.831638   86480 v2.go:167] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+E0824 20:30:54.831649   86480 v2.go:150] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+error
+2026-08-24 20:31:27,053 - WARNING - ⚠️     | FAST_COLLECT pipeline attempt 2/5 failed for inference-perf-qps-40-1787592376-k8zolw_1 (exit=1): unexpected end of data
+E0824 20:31:27.047363   86592 v2.go:150] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+E0824 20:31:27.047429   86592 v2.go:167] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+error

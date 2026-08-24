@@ -1,0 +1,5 @@
+schema_version: "1"
+event: "traffic_complete"
+experiment_id: "inference-perf-qps-10-1787592989-j0yr1z"
+final_stage_id: 0
+completed_at: "2026-08-24T17:38:42Z"

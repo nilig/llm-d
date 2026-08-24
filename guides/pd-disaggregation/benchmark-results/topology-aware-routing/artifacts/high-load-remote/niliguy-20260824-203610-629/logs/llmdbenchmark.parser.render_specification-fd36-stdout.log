@@ -1,0 +1,13 @@
+2026-08-24 20:36:10,633 - DEBUG   - 🔍 Rendered Specification File
+ {
+  "base_dir": "/private/tmp/nilig-topology-benchmark-client/llm-d-benchmark",
+  "values_file": {
+    "path": "/private/tmp/nilig-topology-benchmark-client/llm-d-benchmark/config/templates/values/defaults.yaml"
+  },
+  "template_dir": {
+    "path": "/private/tmp/nilig-topology-benchmark-client/llm-d-benchmark/config/templates/jinja"
+  },
+  "scenario_file": {
+    "path": "/private/tmp/nilig-topology-benchmark-client/llm-d-benchmark/config/scenarios/guides/pd-disaggregation.yaml"
+  }
+}

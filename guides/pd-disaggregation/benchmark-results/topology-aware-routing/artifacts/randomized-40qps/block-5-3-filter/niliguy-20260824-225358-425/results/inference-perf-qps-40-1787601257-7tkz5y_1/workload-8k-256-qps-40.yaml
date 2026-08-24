@@ -1,0 +1,39 @@
+load:
+  type: constant
+  stages:
+    - rate: 40
+      duration: 120
+      num_requests: null
+      concurrency_level: null
+  num_workers: 100
+  worker_max_concurrency: 100
+api:
+  type: completion
+  streaming: true
+server:
+  type: vllm
+  model_name: openai/gpt-oss-120b
+  base_url: http://10.16.3.183
+  ignore_eos: true
+tokenizer:
+  pretrained_model_name_or_path: openai/gpt-oss-120b
+data:
+  type: random
+  input_distribution:
+    min: 8192
+    max: 8192
+    mean: 8192
+    std_dev: 0
+  output_distribution:
+    min: 256
+    max: 256
+    mean: 256
+    std_dev: 0
+report:
+  request_lifecycle:
+    summary: true
+    per_stage: true
+    per_request: true
+storage:
+  local_storage:
+    path: /requests/inference-perf-qps-40-1787601257-7tkz5y_1

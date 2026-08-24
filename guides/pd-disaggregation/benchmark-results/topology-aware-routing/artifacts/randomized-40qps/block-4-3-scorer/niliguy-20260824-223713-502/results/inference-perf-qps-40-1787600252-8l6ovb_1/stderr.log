@@ -1,0 +1,15 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Warning: LLMDBENCH_VLLM_MODELSERVICE_GAIE_PRESETS_CONFIG empty.Failed to retrieve ConfigMap 'llm-d-benchmark-standup-parameters': (404)
+Reason: Not Found
+HTTP response headers: HTTPHeaderDict({'Audit-Id': 'aa985b5e-e5f8-4577-8e54-3ca490c3086a', 'Cache-Control': 'no-cache, private', 'Content-Type': 'application/json', 'X-Kubernetes-Pf-Flowschema-Uid': '50bfaae4-9707-46f6-9b0f-2a0c0f73201c', 'X-Kubernetes-Pf-Prioritylevel-Uid': '564d692a-b28e-4ae1-918f-55e9705cb98b', 'Date': 'Mon, 24 Aug 2026 19:40:35 GMT', 'Content-Length': '248'})
+HTTP response body: {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","message":"configmaps \"llm-d-benchmark-standup-parameters\" not found","reason":"NotFound","details":{"name":"llm-d-benchmark-standup-parameters","kind":"configmaps"},"code":404}
+
+
+Failed to retrieve /standup/ev.yaml: [Errno 2] No such file or directory: '/standup/ev.yaml'
+Failed to detect accelerator model: (403)
+Reason: Forbidden
+HTTP response headers: HTTPHeaderDict({'Audit-Id': 'd6743fa8-d25d-422a-a926-505564d5e6c2', 'Cache-Control': 'no-cache, private', 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'X-Kubernetes-Pf-Flowschema-Uid': '50bfaae4-9707-46f6-9b0f-2a0c0f73201c', 'X-Kubernetes-Pf-Prioritylevel-Uid': '564d692a-b28e-4ae1-918f-55e9705cb98b', 'Date': 'Mon, 24 Aug 2026 19:40:35 GMT', 'Content-Length': '304'})
+HTTP response body: {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","message":"nodes is forbidden: User \"system:serviceaccount:nilig-topology-aware:inference-perf-runner\" cannot list resource \"nodes\" in API group \"\" at the cluster scope","reason":"Forbidden","details":{"kind":"nodes"},"code":403}
+
+
+Environment variable empty: LLMDBENCH_VLLM_MODELSERVICE_GAIE_PRESETS_CONFIG

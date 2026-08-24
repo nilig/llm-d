@@ -1,0 +1,9 @@
+constants:
+  load.stages.0.duration: 120
+
+treatments:
+  - name: input-64k-qps-2
+    load.stages.0.rate: 2
+    data.input_distribution.min: 65536
+    data.input_distribution.max: 65536
+    data.input_distribution.mean: 65536

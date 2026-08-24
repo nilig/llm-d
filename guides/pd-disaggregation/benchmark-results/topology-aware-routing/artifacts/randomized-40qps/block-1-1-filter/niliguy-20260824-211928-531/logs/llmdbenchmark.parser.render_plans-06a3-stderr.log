@@ -1,0 +1,3 @@
+
+2026-08-24 21:19:33,814 - WARNING - ⚠️ CLI --models override (openai/gpt-oss-120b) will not propagate into decode.vllm.customCommand. Update the customCommand in your scenario to match, or remove customCommand to use the auto-generated command.
+2026-08-24 21:19:33,814 - WARNING - ⚠️ CLI --models override (openai/gpt-oss-120b) will not propagate into prefill.vllm.customCommand. Update the customCommand in your scenario to match, or remove customCommand to use the auto-generated command.

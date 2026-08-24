@@ -1,0 +1,62 @@
+2026-08-24 19:38:48,221 - INFO    - Processing scenario with 1 stack(s)...
+
+2026-08-24 19:38:48,226 - INFO    - Loaded 40 template(s) from /private/tmp/nilig-topology-benchmark-client/llm-d-benchmark/config/templates/jinja
+2026-08-24 19:38:48,226 - INFO    - [1/1] Processing stack: pd-disaggregation
+2026-08-24 19:38:48,228 - INFO    - [pd-disaggregation] Scenario override: description.text: '' -> 'Topology-aware P/D baseline, decode-first, no topology plugin'
+2026-08-24 19:38:48,955 - INFO    - Image override: benchmark pinned to ghcr.io/llm-d/llm-d-benchmark:v0.8.0
+2026-08-24 19:38:48,955 - INFO    - Image override: vllm pinned to docker.io/vllm/vllm-openai:v0.26.0
+2026-08-24 19:38:48,955 - INFO    - Image override: vllmOpenai pinned to docker.io/vllm/vllm-openai:v0.26.0
+2026-08-24 19:38:48,955 - INFO    - Image override: routerEndpointPicker pinned to ghcr.io/llm-d/llm-d-router-endpoint-picker:v0.10.0
+2026-08-24 19:38:48,955 - INFO    - Image override: routingSidecar pinned to ghcr.io/llm-d/llm-d-router-disagg-sidecar:v0.10.0
+2026-08-24 19:38:48,955 - INFO    - Image override: udsTokenizer pinned to docker.io/vllm/vllm-openai:v0.26.0
+2026-08-24 19:38:48,955 - INFO    - Image override: python pinned to python:3.10
+2026-08-24 19:38:48,955 - INFO    - Image override: standalone pinned to docker.io/vllm/vllm-openai:v0.26.0
+2026-08-24 19:38:53,194 - INFO    - Namespace from CLI: deploy=nilig-topology-aware, harness=nilig-topology-aware, wva=nilig-topology-aware
+2026-08-24 19:38:53,194 - INFO    - Model from CLI: openai/gpt-oss-120b (shortName=openai-g-a6a03f4d-oss-120b) [stack=pd-disaggregation]
+2026-08-24 19:38:53,195 - INFO    - Gateway class from CLI: epponly
+2026-08-24 19:38:53,196 - INFO    - ℹ️ No HuggingFace token found -- HF secret will not be created. Public models will work; gated models will fail at standup.
+2026-08-24 19:38:53,196 - INFO    - Auto-resolved destinationRule.host to 'openai-g-a6a03f4d-oss-120b-router-epp'
+2026-08-24 19:38:53,252 - INFO    - ✅ Rendered: 01_pvc_workload-pvc.yaml
+2026-08-24 19:38:53,276 - INFO    - ✅ Rendered: 02_pvc_model-pvc.yaml
+2026-08-24 19:38:53,300 - INFO    - ✅ Rendered: 02a_pv_model-hostpath.yaml
+2026-08-24 19:38:53,323 - INFO    - ✅ Rendered: 03_cluster-monitoring-config.yaml
+2026-08-24 19:38:53,349 - INFO    - ✅ Rendered: 03_download_daemonset.yaml
+2026-08-24 19:38:53,373 - INFO    - ✅ Rendered: 04_download_job.yaml
+2026-08-24 19:38:53,398 - INFO    - ✅ Rendered: 05_namespace_sa_rbac_secret.yaml
+2026-08-24 19:38:53,420 - INFO    - ✅ Rendered: 05a_agentgateway_scc.yaml
+2026-08-24 19:38:53,445 - INFO    - ✅ Rendered: 06_pod_access_to_harness_data.yaml
+2026-08-24 19:38:53,468 - INFO    - ✅ Rendered: 07_service_access_to_harness_data.yaml
+2026-08-24 19:38:53,495 - INFO    - ✅ Rendered: 08_httproute.yaml
+2026-08-24 19:38:53,519 - INFO    - ✅ Rendered: 09_helmfile-gateway-provider.yaml
+2026-08-24 19:38:53,544 - INFO    - ✅ Rendered: 10_helmfile-main.yaml
+2026-08-24 19:38:53,570 - INFO    - ✅ Rendered: 11_infra.yaml
+2026-08-24 19:38:53,594 - INFO    - ✅ Rendered: 12_router-values.yaml
+2026-08-24 19:38:53,680 - INFO    - ✅ Rendered: 13_ms-values.yaml
+2026-08-24 19:38:53,704 - INFO    - ✅ Rendered: 13a_modelservice-direct-service.yaml
+2026-08-24 19:38:53,763 - INFO    - ✅ Rendered: 14_standalone-deployment_yaml.yaml
+2026-08-24 19:38:53,789 - INFO    - ✅ Rendered: 15_standalone-service_yaml.yaml
+2026-08-24 19:38:53,813 - INFO    - ✅ Rendered: 16_pvc_extra-pvc.yaml
+2026-08-24 19:38:53,837 - INFO    - ✅ Rendered: 17_standalone-podmonitor.yaml
+2026-08-24 19:38:53,862 - INFO    - ✅ Rendered: 18_podmonitor.yaml
+2026-08-24 19:38:53,887 - INFO    - ✅ Rendered: 19_wva-kustomize.yaml
+2026-08-24 19:38:53,917 - INFO    - ✅ Rendered: 20_harness_pod.yaml
+2026-08-24 19:38:53,941 - INFO    - ✅ Rendered: 21_keda-triggerauthentication.yaml
+2026-08-24 19:38:53,964 - INFO    - ✅ Rendered: 22_prometheus-rbac.yaml
+2026-08-24 19:38:53,987 - INFO    - ✅ Rendered: 23_wva-namespace.yaml
+2026-08-24 19:38:54,019 - INFO    - ✅ Rendered: 24_fma-deployment.yaml
+2026-08-24 19:38:54,041 - INFO    - ✅ Rendered: 25_fma-clusterrole.yaml
+2026-08-24 19:38:54,064 - INFO    - ✅ Rendered: 25a_fma-launcher-rbac.yaml
+2026-08-24 19:38:54,088 - INFO    - ✅ Rendered: 26_helmfile-fma-controllers.yaml
+2026-08-24 19:38:54,114 - INFO    - ✅ Rendered: 27_keda-scaledobjects.yaml
+2026-08-24 19:38:54,139 - INFO    - ✅ Rendered: 27a_keda-triggerauthentication.yaml
+2026-08-24 19:38:54,165 - INFO    - ✅ Rendered: 28_wva-scaledobject.yaml
+2026-08-24 19:38:54,189 - INFO    - ✅ Rendered: 29_epp-keda-saturation-epp-monitoring.yaml
+2026-08-24 19:38:54,214 - INFO    - ✅ Rendered: 30_keda-scaledobject.yaml
+2026-08-24 19:38:54,238 - INFO    - ✅ Rendered: 31_nok8s-epp-config.yaml
+2026-08-24 19:38:54,261 - INFO    - ✅ Rendered: 32_nok8s-epp-endpoints.yaml
+2026-08-24 19:38:54,284 - INFO    - ✅ Rendered: 33_nok8s-envoy.yaml
+2026-08-24 19:38:54,309 - INFO    - ✅ Rendered: 34_nok8s-containers.yaml
+2026-08-24 19:38:54,375 - INFO    - Output: /Users/niliguy/github.com/llm-d/tmp/topology-aware-benchmark/results/baseline/niliguy-20260824-193848-180/plan/pd-disaggregation
+2026-08-24 19:38:54,375 - INFO    - Success: 40, Errors: 0
+
+2026-08-24 19:38:54,375 - INFO    - Scenario rendering complete! Output in: /Users/niliguy/github.com/llm-d/tmp/topology-aware-benchmark/results/baseline/niliguy-20260824-193848-180/plan

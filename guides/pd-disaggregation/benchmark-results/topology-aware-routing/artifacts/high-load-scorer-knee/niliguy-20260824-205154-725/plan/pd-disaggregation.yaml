@@ -1,0 +1,17 @@
+# [REQUIRED]
+base_dir: /private/tmp/nilig-topology-benchmark-client/llm-d-benchmark
+
+# [REQUIRED]
+values_file:
+  path: /private/tmp/nilig-topology-benchmark-client/llm-d-benchmark/config/templates/values/defaults.yaml
+
+# [REQUIRED]
+template_dir:
+  path: /private/tmp/nilig-topology-benchmark-client/llm-d-benchmark/config/templates/jinja
+
+# [OPTIONAL]
+scenario_file:
+  path: /private/tmp/nilig-topology-benchmark-client/llm-d-benchmark/config/scenarios/guides/pd-disaggregation.yaml
+
+# Experiment definitions have been moved to:
+#   workload/experiments/pd-disaggregation.yaml

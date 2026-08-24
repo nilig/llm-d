@@ -1,0 +1,16 @@
+
+
+
+
+
+
+2026-08-24 22:16:20,549 - WARNING - ⚠️     | Cluster platform type could not be identified (detection in step 00 matched none of OpenShift/GKE/Kind/Minikube); LLMDBENCH_CLUSTER_TYPE will be set to 'unrecognized' in the harness pod.
+2026-08-24 22:22:28,424 - ERROR   - ❌     | [1/1] Treatment 'qps-40' failed (367s): 1 error(s)
+2026-08-24 22:22:28,424 - ERROR   - ❌ [07] Stack 'pd-disaggregation': FAILED: [07] deploy_harness (pd-disaggregation): FAILED - Some treatments had errors
+
+
+2026-08-24 22:22:29,718 - ERROR   - ❌ Run failed:
+Phase: run
+Stack 'pd-disaggregation' failures:
+  - [07] deploy_harness (pd-disaggregation): FAILED - Some treatments had errors
+    * Error: Found pods in error state: inference-perf-54retc1v/harness (terminated: Error, exit_code=1)

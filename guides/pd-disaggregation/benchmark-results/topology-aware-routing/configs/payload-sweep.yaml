@@ -1,0 +1,18 @@
+constants:
+  load.stages.0.duration: 120
+treatments:
+- name: input-16k-qps-20
+  load.stages.0.rate: 20
+  data.input_distribution.min: 16384
+  data.input_distribution.max: 16384
+  data.input_distribution.mean: 16384
+- name: input-32k-qps-10
+  load.stages.0.rate: 10
+  data.input_distribution.min: 32768
+  data.input_distribution.max: 32768
+  data.input_distribution.mean: 32768
+- name: input-64k-qps-5
+  load.stages.0.rate: 5
+  data.input_distribution.min: 65536
+  data.input_distribution.max: 65536
+  data.input_distribution.mean: 65536

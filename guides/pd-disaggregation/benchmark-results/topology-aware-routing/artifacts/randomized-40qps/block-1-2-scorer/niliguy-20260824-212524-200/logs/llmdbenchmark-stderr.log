@@ -1,0 +1,11 @@
+
+
+2026-08-24 21:25:28,784 - WARNING - ⚠️ CLI --models override (openai/gpt-oss-120b) will not propagate into decode.vllm.customCommand. Update the customCommand in your scenario to match, or remove customCommand to use the auto-generated command.
+2026-08-24 21:25:28,784 - WARNING - ⚠️ CLI --models override (openai/gpt-oss-120b) will not propagate into prefill.vllm.customCommand. Update the customCommand in your scenario to match, or remove customCommand to use the auto-generated command.
+
+
+
+
+
+
+2026-08-24 21:25:41,263 - WARNING - ⚠️     | Cluster platform type could not be identified (detection in step 00 matched none of OpenShift/GKE/Kind/Minikube); LLMDBENCH_CLUSTER_TYPE will be set to 'unrecognized' in the harness pod.

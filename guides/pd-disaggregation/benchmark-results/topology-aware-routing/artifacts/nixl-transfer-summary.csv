@@ -1,0 +1,6 @@
+input_tokens,routing,kv_megabytes,mean_transfer_ms_range,effective_megabytes_per_second_range,source
+8192,local,73.125,7.555-8.335,8773-9679,decoder modelserver telemetry
+16384,remote,145.125,15.630-16.229,8942-9285,decoder modelserver telemetry
+32768,remote,289.125,27.404-27.950,10344-10550,decoder modelserver telemetry
+65536,local,577.125,49.825,11583,paired run 1 decoder telemetry
+65536,remote,577.125,50.118-51.008,11314-11515,paired run 2 decoder telemetry

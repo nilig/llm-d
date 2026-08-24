@@ -1,0 +1,15 @@
+
+
+
+
+
+
+2026-08-24 23:18:21,348 - WARNING - ⚠️     | Cluster platform type could not be identified (detection in step 00 matched none of OpenShift/GKE/Kind/Minikube); LLMDBENCH_CLUSTER_TYPE will be set to 'unrecognized' in the harness pod.
+2026-08-24 23:27:44,648 - WARNING - ⚠️     | FAST_COLLECT pipeline attempt 1/5 failed for inference-perf-input-32k-qps-10-1787602966-6bi4an_1 (exit=1): unexpected end of data
+E0824 23:27:44.641824   46269 v2.go:167] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+E0824 23:27:44.641824   46269 v2.go:150] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+error
+2026-08-24 23:28:21,756 - WARNING - ⚠️     | FAST_COLLECT pipeline attempt 2/5 failed for inference-perf-input-32k-qps-10-1787602966-6bi4an_1 (exit=1): unexpected end of data
+E0824 23:28:21.744354   46399 v2.go:167] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+E0824 23:28:21.744355   46399 v2.go:150] "Unhandled Error" err="read message: websocket: close 1006 (abnormal closure): unexpected EOF"
+error

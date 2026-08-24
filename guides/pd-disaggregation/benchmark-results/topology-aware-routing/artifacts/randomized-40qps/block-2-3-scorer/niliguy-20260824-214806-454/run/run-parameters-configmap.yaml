@@ -1,0 +1,547 @@
+apiVersion: v1
+data:
+  latest: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787597303-ik0c2m
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787597303-ik0c2m_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T185301Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T164325Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-1787589587-closvy
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-1787589587-closvy_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T164325Z
+
+    user: niliguy
+
+    workload: guide_pd-disaggregation_2.yaml
+
+    '
+  run-20260824T165233Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-1787590107-tq5amy
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-1787590107-tq5amy_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T165233Z
+
+    user: niliguy
+
+    workload: guide_pd-disaggregation_2.yaml
+
+    '
+  run-20260824T165815Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-1787590476-pvo9re
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-1787590476-pvo9re_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T165815Z
+
+    user: niliguy
+
+    workload: guide_pd-disaggregation_2.yaml
+
+    '
+  run-20260824T170349Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-1787590810-0hx08z
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-1787590810-0hx08z_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T170349Z
+
+    user: niliguy
+
+    workload: guide_pd-disaggregation_2.yaml
+
+    '
+  run-20260824T173205Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-10-1787591899-u0cylw
+
+    - inference-perf-qps-20-1787592127-2e2vbr
+
+    - inference-perf-qps-40-1787592376-k8zolw
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-10-1787591899-u0cylw_1
+
+    - /requests/inference-perf-qps-20-1787592127-2e2vbr_1
+
+    - /requests/inference-perf-qps-40-1787592376-k8zolw_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T173205Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T174854Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-10-1787592989-j0yr1z
+
+    - inference-perf-qps-20-1787593213-ao7crn
+
+    - inference-perf-qps-40-1787593453-b8rxha
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-10-1787592989-j0yr1z_1
+
+    - /requests/inference-perf-qps-20-1787593213-ao7crn_1
+
+    - /requests/inference-perf-qps-40-1787593453-b8rxha_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T174854Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T175657Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787593933-7ijlje
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787593933-7ijlje_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T175657Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T180303Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787594310-arldbi
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787594310-arldbi_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T180303Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T182427Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787595587-zlyv9q
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787595587-zlyv9q_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T182427Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T183021Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787595941-f69rtf
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787595941-f69rtf_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T183021Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T183601Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787596277-ju68fv
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787596277-ju68fv_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T183601Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T184146Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787596632-yt0vkq
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787596632-yt0vkq_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T184146Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T184726Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787596967-kq6cb0
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787596967-kq6cb0_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T184726Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+  run-20260824T185301Z: 'analyze: true
+
+    endpoint_url: http://10.16.3.183
+
+    experiment_ids:
+
+    - inference-perf-qps-40-1787597303-ik0c2m
+
+    harness: inference-perf
+
+    hostname: Nilis-MacBook-Pro.local
+
+    model: openai/gpt-oss-120b
+
+    namespace: nilig-topology-aware
+
+    output: local
+
+    parallelism: 1
+
+    pvc_name: workload-pvc
+
+    pvc_results_paths:
+
+    - /requests/inference-perf-qps-40-1787597303-ik0c2m_1
+
+    pvc_results_prefix: /requests
+
+    timestamp: 20260824T185301Z
+
+    user: niliguy
+
+    workload: workload-8k-256.yaml
+
+    '
+kind: ConfigMap
+metadata:
+  name: llm-d-benchmark-run-parameters
+  namespace: nilig-topology-aware

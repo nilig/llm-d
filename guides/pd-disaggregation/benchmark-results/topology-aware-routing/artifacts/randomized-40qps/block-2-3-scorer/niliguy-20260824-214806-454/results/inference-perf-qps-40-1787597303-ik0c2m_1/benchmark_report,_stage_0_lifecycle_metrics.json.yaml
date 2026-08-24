@@ -1,0 +1,236 @@
+metrics:
+  latency:
+    inter_token_latency:
+      max: 2.9443121638614684
+      mean: 0.006088953411084824
+      min: 0.0
+      p0p1: 0.0
+      p1: 0.0
+      p10: 0.0
+      p25: 6.570015102624893e-06
+      p5: 0.0
+      p50: 0.002493083942681551
+      p75: 0.007484021130949259
+      p90: 0.009707180038094518
+      p95: 0.013130292389541855
+      p99: 0.017573972260579464
+      p99p9: 0.7937137293573768
+      units: s/token
+    normalized_time_per_output_token:
+      max: 0.04564391837144891
+      mean: 0.01432008050873178
+      min: 0.00028227490199214753
+      p0p1: 0.0003483477789542654
+      p1: 0.008686732788296146
+      p10: 0.010094940966714039
+      p25: 0.011476074869379103
+      p5: 0.009503942818954546
+      p50: 0.013712764703278693
+      p75: 0.01644176108839813
+      p90: 0.01959084566579288
+      p95: 0.02167736581973785
+      p99: 0.02571229192506792
+      p99p9: 0.03149298092701811
+      units: s/token
+    request_latency:
+      max: 8.287773367017508
+      mean: 3.604488514563321
+      min: 1.9216995120514184
+      p0p1: 2.129030735607259
+      p1: 2.2406645498308353
+      p10: 2.5486627626232803
+      p25: 2.883071867923718
+      p5: 2.401831859839149
+      p50: 3.4379820618778467
+      p75: 4.130887114210054
+      p90: 4.918666636897251
+      p95: 5.418441001093015
+      p99: 6.339179787873296
+      p99p9: 7.7658339570213775
+      units: s
+    time_per_output_token:
+      max: 0.02469024954774937
+      mean: 0.007451046653502968
+      min: 3.4449141599591615e-06
+      p0p1: 0.0001003511059151659
+      p1: 0.0009528673602518995
+      p10: 0.006038784380331339
+      p25: 0.0074206152117184555
+      p5: 0.004529060466552385
+      p50: 0.00756311078696879
+      p75: 0.00773978188757793
+      p90: 0.00857302034578641
+      p95: 0.009643647030869179
+      p99: 0.012184813949451239
+      p99p9: 0.014889805939638075
+      units: s/token
+    time_to_first_token:
+      max: 6.469838581979275
+      mean: 1.6561644654170473
+      min: 0.30016834917478263
+      p0p1: 0.30778745736880225
+      p1: 0.34089993169298394
+      p10: 0.6711143578169868
+      p25: 0.9411585273919627
+      p5: 0.5211480257450604
+      p50: 1.4783345324685797
+      p75: 2.1869393459055573
+      p90: 2.9368722058832644
+      p95: 3.456346013629809
+      p99: 4.284341354104691
+      p99p9: 5.6296199926048125
+      units: s
+  requests:
+    failures: 0
+    input_length:
+      max: 8192.0
+      mean: 8192.0
+      min: 8192.0
+      p0p1: 8192.0
+      p1: 8192.0
+      p10: 8192.0
+      p25: 8192.0
+      p5: 8192.0
+      p50: 8192.0
+      p75: 8192.0
+      p90: 8192.0
+      p95: 8192.0
+      p99: 8192.0
+      p99p9: 8192.0
+      units: count
+    output_length:
+      max: 8448.0
+      mean: 303.195
+      min: 78.0
+      p0p1: 181.196
+      p1: 225.0
+      p10: 245.0
+      p25: 249.0
+      p5: 241.95000000000002
+      p50: 252.0
+      p75: 254.0
+      p90: 255.0
+      p95: 256.0
+      p99: 258.0
+      p99p9: 8446.201000000001
+      units: count
+    total: 4800
+  throughput:
+    output_tokens_per_sec: 11727.556563339056
+    requests_per_sec: 38.679914125691575
+    total_tokens_per_sec: 328593.4130810044
+  time:
+    duration: 119.7138890530914
+scenario:
+  load:
+    args:
+      api:
+        headers: null
+        response_format: null
+        session_id_header_key: null
+        slo_tpot_header: null
+        slo_ttft_header: null
+        slo_unit: null
+        streaming: true
+        type: completion
+      circuit_breakers: null
+      data:
+        conversation_replay: null
+        corpus_file_path: null
+        input_distribution:
+          max: 8192
+          mean: 8192.0
+          min: 8192
+          skew: 0.0
+          std_dev: 0.0
+          total_count: 4801
+          type: normal
+          variance: null
+        multimodal: null
+        otel_trace_replay: null
+        output_distribution:
+          max: 256
+          mean: 256.0
+          min: 256
+          skew: 0.0
+          std_dev: 0.0
+          total_count: 4801
+          type: normal
+          variance: null
+        path: null
+        shared_prefix: null
+        trace: null
+        type: random
+        visionarena: null
+        weka_trace_replay: null
+      load:
+        base_seed: 1787597308191
+        circuit_breakers: []
+        interval: 1.0
+        lora_traffic_split: null
+        num_workers: 100
+        request_timeout: null
+        stages:
+        - concurrency_level: null
+          duration: 120
+          num_requests: null
+          rate: 40.0
+        sweep: null
+        trace: null
+        type: constant
+        worker_max_concurrency: 100
+        worker_max_tcp_connections: 2500
+      metrics: null
+      report:
+        goodput: null
+        prometheus:
+          per_stage: false
+          summary: true
+        request_lifecycle:
+          max_error_messages: 100
+          per_adapter: true
+          per_adapter_stage: false
+          per_request: true
+          per_stage: true
+          percentiles:
+          - 0.1
+          - 1.0
+          - 5.0
+          - 10.0
+          - 25.0
+          - 50.0
+          - 75.0
+          - 90.0
+          - 95.0
+          - 99.0
+          - 99.9
+          summary: true
+          use_server_output_tokens: false
+        session_lifecycle:
+          per_session: false
+          per_stage: true
+          summary: true
+      server:
+        api_key: null
+        base_url: http://10.16.3.183
+        cert_path: null
+        ignore_eos: true
+        key_path: null
+        model_name: openai/gpt-oss-120b
+        type: vllm
+      storage:
+        google_cloud_storage: null
+        local_storage:
+          path: /requests/inference-perf-qps-40-1787597303-ik0c2m_1
+          report_file_prefix: null
+        simple_storage_service: null
+      tokenizer:
+        pretrained_model_name_or_path: openai/gpt-oss-120b
+        token: null
+        trust_remote_code: null
+    metadata:
+      stage: 0
+    name: inference-perf
+  model:
+    name: unknown
+version: '0.1'

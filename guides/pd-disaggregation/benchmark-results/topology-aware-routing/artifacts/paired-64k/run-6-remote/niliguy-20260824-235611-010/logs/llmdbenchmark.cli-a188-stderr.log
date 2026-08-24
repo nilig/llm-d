@@ -1,0 +1,7 @@
+
+
+
+
+
+
+2026-08-24 23:56:28,213 - WARNING - ⚠️     | Cluster platform type could not be identified (detection in step 00 matched none of OpenShift/GKE/Kind/Minikube); LLMDBENCH_CLUSTER_TYPE will be set to 'unrecognized' in the harness pod.

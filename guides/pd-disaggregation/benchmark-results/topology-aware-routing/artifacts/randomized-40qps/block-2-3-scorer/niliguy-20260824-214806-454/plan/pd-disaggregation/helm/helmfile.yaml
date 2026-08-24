@@ -1,0 +1,34 @@
+helmDefaults:
+  createNamespace: false
+---
+
+
+repositories:
+  - name: llm-d-modelservice
+    url: https://llm-d-incubation.github.io/llm-d-modelservice/
+  - name: llm-d-infra
+    url: https://llm-d-incubation.github.io/llm-d-infra/
+
+releases:
+
+  - name: openai-g-a6a03f4d-oss-120b-ms
+    namespace: nilig-topology-aware
+    chart: llm-d-modelservice/llm-d-modelservice
+    version: v0.4.16
+    installed: true
+    needs:
+      - nilig-topology-aware/openai-g-a6a03f4d-oss-120b-router
+    values:
+      - ms-values.yaml
+    labels:
+      kind: inference-stack
+
+  - name: openai-g-a6a03f4d-oss-120b-router
+    namespace: nilig-topology-aware
+    chart: oci://ghcr.io/llm-d/charts/llm-d-router-standalone
+    version: v0.10.0
+    installed: true
+    values:
+      - router-values.yaml
+    labels:
+      kind: inference-stack

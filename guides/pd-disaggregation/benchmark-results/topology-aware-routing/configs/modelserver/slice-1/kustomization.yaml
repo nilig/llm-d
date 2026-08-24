@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+nameSuffix: "-1"
+patches:
+  - target:
+      kind: DisaggregatedSet
+      name: pd-topology
+    patch: |-
+      - op: add
+        path: /spec/roles/0/spec/leaderWorkerTemplate/workerTemplate/metadata/labels/llm-d.ai~1topology-slice
+        value: "1"
+      - op: add
+        path: /spec/roles/0/spec/leaderWorkerTemplate/workerTemplate/spec/nodeSelector
+        value:
+          kubernetes.io/hostname: gf2ac9a
+      - op: add
+        path: /spec/roles/1/spec/leaderWorkerTemplate/workerTemplate/metadata/labels/llm-d.ai~1topology-slice
+        value: "1"
+      - op: add
+        path: /spec/roles/1/spec/leaderWorkerTemplate/workerTemplate/spec/nodeSelector
+        value:
+          kubernetes.io/hostname: gf2ac9a
