@@ -1,0 +1,12 @@
+block	position	policy	attempt	status	reason	request_qps	total_requests	failures	log
+1	1	filter	1	valid		39.31772500830309	4800	0	artifacts/harness-logs/block-1-1-filter-attempt-1.log
+1	2	scorer	1	valid		39.26054612576717	4800	0	artifacts/harness-logs/block-1-2-scorer-attempt-1.log
+1	3	baseline	1	valid		39.237558443077475	4800	0	artifacts/harness-logs/block-1-3-baseline-attempt-1.log
+2	1	baseline	1	valid		39.14020036964818	4800	0	artifacts/harness-logs/block-2-1-baseline-attempt-1.log
+2	2	filter	1	valid		39.27274660525702	4800	0	artifacts/harness-logs/block-2-2-filter-attempt-1.log
+2	3	scorer	1	valid		38.94234300233948	4800	0	artifacts/harness-logs/block-2-3-scorer-attempt-1.log
+3	1	scorer	1	valid		39.043256117291065	4800	0	artifacts/harness-logs/block-3-1-scorer-attempt-1.log
+3	2	baseline	1	invalid	benchmark-command-failed				artifacts/harness-logs/block-3-2-baseline-attempt-1.log
+3	2	baseline	2	invalid	benchmark-command-failed				artifacts/harness-logs/block-3-2-baseline-attempt-2.log
+3	2	baseline	3	valid		39.025264708431074	4800	0	artifacts/harness-logs/block-3-2-baseline-attempt-3.log
+3	3	filter	3	valid		39.21269321681476	4800	0	artifacts/harness-logs/block-3-3-filter-attempt-3.log

@@ -1,0 +1,14 @@
+constants:
+  load.stages.0.duration: 30
+treatments:
+- name: qps-1
+  load.stages.0.rate: 1
+load:
+  type: constant
+  stages:
+  - rate: 1
+    duration: 30
+    num_requests: null
+    concurrency_level: null
+  num_workers: 8
+  worker_max_concurrency: 8

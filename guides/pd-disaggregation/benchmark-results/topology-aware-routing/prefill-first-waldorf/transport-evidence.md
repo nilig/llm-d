@@ -52,9 +52,10 @@ UCX_PROTO_INFO=y
 UCX_PROTO_ENABLE=y
 ```
 
-## Intra-node endpoint
+## Intra-node endpoint advertisement
 
-A representative worker endpoint exposed CUDA IPC together with RDMA lanes:
+A representative worker endpoint advertised `cuda_ipc/cuda` together with
+RDMA lanes:
 
 ```text
 ucp_context_0 intra-node cfg#1
@@ -63,8 +64,11 @@ device(cuda_ipc/cuda)
 am(rc_mlx5/... cuda_ipc/cuda)
 ```
 
-This establishes CUDA IPC availability. It does not establish which lane was
-selected for every KV payload.
+This records an advertised endpoint device lane. It does not establish
+cross-pod CUDA IPC availability or payload use. The operation-specific table
+captured for the completed prefill-first rerun selected `rc_mlx5` for the
+same-node CUDA-to-CUDA KV payload; see
+[`prefill-rdma-rerun-20260826/transport-evidence.md`](prefill-rdma-rerun-20260826/transport-evidence.md).
 
 ## Transfer telemetry
 

@@ -225,24 +225,23 @@ ms.
 
 ## Prefill-first follow-up
 
-A follow-up on Waldorf compared both router stage orders with the baseline,
-topology filter, and topology scorer. The deployment explicitly selected CUDA
-KV buffers and the UCX NIXL backend, with UCX protocol diagnostics enabled.
+A completed Waldorf follow-up used `stageOrder: prefill-first` for three
+balanced blocks of the baseline, topology filter, and topology scorer. All
+43,200 requests succeeded. The baseline sent 50.1% of observed P/D pairs
+across nodes. The scorer reduced that rate to 27.0% without a statistically
+distinguishable latency or throughput change. The strict filter selected no
+remote route in the observed logs, but added 110.7 ms to paired mean TTFT
+(95% CI: 59.0 to 162.5 ms) and 98.9 ms to mean request latency (95% CI: 36.8
+to 161.0 ms).
 
-The first balanced block completed without failures. Prefill-first was faster
-than decode-first for all three plugin variants in that block, but a repeated
-prefill-first baseline had 22.6% higher mean TTFT than the first baseline. The
-planned three-block matrix was interrupted when other workloads consumed the
-decoder capacity, so the stage-order result is directional rather than
-conclusive. The strict prefill-first filter remained slower than the baseline
-in mean latency, while the scorer retained 26.6% remote routing and had the
-lowest mean latency in the first block.
-
-The logs confirmed CUDA buffers, UCX, and CUDA IPC availability. Measured 8K
-KV transfer throughput remained approximately 7.9-10.3 GB/s, so the deployment
-still did not expose an NVLink-class same-node advantage. See the
+UCX protocol diagnostics showed that both same-node and cross-node CUDA KV
+payloads selected `rc_mlx5`. The endpoint advertised `cuda_ipc/cuda`, but the
+operation-specific payload table did not select it. This is therefore an RDMA
+routing evaluation, not a CUDA IPC or NVLink evaluation. See the
 [`prefill-first-waldorf` artifacts](prefill-first-waldorf/README.md) for the
-partial matrix, transport evidence, and exact inputs.
+partial stage-order matrix and the
+[`completed RDMA rerun`](prefill-first-waldorf/prefill-rdma-rerun-20260826/README.md)
+for the paired results and exact inputs.
 
 ## Conclusion
 
@@ -252,14 +251,16 @@ The topology plugins work functionally:
 - The scorer strongly prefers local pairings but can escape when other scores
   outweigh locality.
 
-They do not improve performance on this Kermit deployment. At 40 QPS the
-strict filter significantly worsens mean latency because it halves each
-decoder's prefill candidate pool. At larger KV sizes, local and remote NIXL
-transfer times are effectively equal, so the router has no transfer-time gain
-to trade against reduced queue-balancing flexibility.
+No performance improvement was measured in the tested Kermit or Waldorf
+deployments. At 40 QPS the strict filter significantly worsened mean latency.
+This is consistent with restricting the second-stage candidate pool and
+reducing load-balancing freedom. The scorer increased locality without a
+distinguishable performance change. Local and remote NIXL payloads used RDMA,
+and no transfer-time gain was measured to trade against reduced
+queue-balancing flexibility.
 
 A performance-positive evaluation requires a deployment where the connector's
 measured same-node transfer time is materially lower than its cross-node time,
-or a controlled inter-node congestion experiment. Artificially congesting the
-shared Kermit fabric was intentionally not attempted because it could affect
+or a controlled inter-node congestion experiment. Artificially congesting a
+shared cluster fabric was intentionally not attempted because it could affect
 other tenants.

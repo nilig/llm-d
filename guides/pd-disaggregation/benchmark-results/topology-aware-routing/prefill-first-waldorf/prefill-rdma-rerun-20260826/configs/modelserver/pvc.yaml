@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: topology-prefill-first-model-cache
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: shared-vast

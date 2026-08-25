@@ -1,0 +1,5 @@
+constants:
+  load.stages.0.duration: 120
+treatments:
+- name: qps-40
+  load.stages.0.rate: 40

@@ -5,11 +5,23 @@ Date: 2026-08-25
 Cluster and namespace: `waldorf_US-EAST-04A`,
 `nilig-topology-prefill-first`
 
-Status: partial matrix. Seven of 18 planned runs completed before other
-workloads consumed the decoder capacity. The completed aggregate reports are
-valid, but the sample is too small for the planned paired confidence
-intervals. All benchmark Deployments were scaled to zero after the
-interruption.
+## Completed prefill-first policy matrix
+
+The completed three-block comparison is documented in the
+[`prefill-rdma-rerun-20260826`](prefill-rdma-rerun-20260826/README.md)
+subdirectory. It contains nine accepted baseline, topology-filter, and
+topology-scorer runs with 43,200 successful requests.
+
+The operation-specific UCX table classifies the same-node CUDA-to-CUDA KV
+payload as `rc_mlx5`. The endpoint advertised `cuda_ipc/cuda`, but that lane
+was not selected for the payload. The completed report therefore evaluates
+topology routing over RDMA rather than a CUDA IPC fast path.
+
+Original stage-order matrix status: partial. Seven of 18 planned runs
+completed before other workloads consumed the decoder capacity. The completed
+aggregate reports are valid, but the sample is too small for the planned
+paired confidence intervals. All benchmark Deployments were scaled to zero
+after the interruption.
 
 ## Deployment
 
@@ -56,9 +68,9 @@ a performance improvement.
 ## Transport verification
 
 The model-server logs confirm `NixlConnector`, `kv_buffer_device='cuda'`, the
-UCX backend, and `use_host_buffer: False`. UCX exposed an intra-node endpoint
-with `cuda_ipc/cuda` and `rc_mlx5` lanes, and the routing proxy used NIXL V2 for
-a decoder and prefill placed on the same node.
+UCX backend, and `use_host_buffer: False`. UCX advertised an intra-node
+endpoint with `cuda_ipc/cuda` and `rc_mlx5` lanes, and the routing proxy used
+NIXL V2 for a decoder and prefill placed on the same node.
 
 During an all-local 8K filter run, vLLM reported four TP-rank transfers per
 request. Each transfer contained 73.125 MiB and took 7.1-9.3 ms, or
@@ -69,10 +81,11 @@ crossing nodes, the inter-node payload was approximately 6.1 GB/s: about 1.8%
 of the estimated 340-GB/s application bandwidth across eight 400-Gb/s ports,
 or a conservative 14% if all remote traffic shares one such port.
 
-The endpoint log proves that CUDA IPC was available; it does not prove that
-every payload selected the CUDA IPC lane. There was no evidence of a TCP-only
-fallback, but the measured connector throughput still did not create a large
-local-transfer benefit for the router to exploit.
+The endpoint log records an advertised `cuda_ipc/cuda` lane; it does not prove
+cross-pod availability or payload use. The operation-specific table captured
+for the completed rerun selected `rc_mlx5` for the same-node CUDA-to-CUDA KV
+payload. There was no evidence of a TCP-only payload fallback, and the
+measurements did not show a large local-transfer advantage.
 
 See `transport-evidence.md` for the curated log excerpts.
 
