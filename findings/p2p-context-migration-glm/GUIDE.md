@@ -8,7 +8,10 @@ Measured results and the exact configuration behind them: [RESULTS.md](RESULTS.m
 
 ## Images
 
-- vLLM: `quay.io/niliguy/vllm-openai:nightly-6f91edf9-pr50302` (TieringOffloadingSpec, p2p secondary tier, NIXL).
+- vLLM: `quay.io/niliguy/vllm-openai:nightly-6f91edf9-pr50302` - the
+  2026-07-29 nightly plus [vllm#50302](https://github.com/vllm-project/vllm/pull/50302)
+  ("Universally align block table width to 128 tokens"). A self-built vLLM
+  works if it satisfies the requirements below; this image is the reference.
 - EPP: `quay.io/niliguy/llm-d-router-endpoint-picker:p2p-cache-routing-709e0991` -
   build of [`nilig/llm-d-router` branch `feat/p2p-cache-aware-context-routing`](https://github.com/llm-d/llm-d-router/compare/main...nilig:llm-d-router:feat/p2p-cache-aware-context-routing)
   at `709e0991`. This commit matters: it carries the confirmed-cache
@@ -52,8 +55,17 @@ Service (in [engines/services.yaml](engines/services.yaml)) must resolve for
 the EPP's `token-producer`; it is a podless Service over the prefill pods'
 vLLM ports.
 
-Image access: `quay.io/niliguy/vllm-openai` is private; ask for pull-secret
-access (the EPP and sidecar images are public).
+Bringing your own vLLM: any build from upstream main at or after 2026-07-31
+(the [vllm#50302](https://github.com/vllm-project/vllm/pull/50302) merge)
+qualifies; earlier builds must cherry-pick that block-table alignment fix or
+the block-size-64 cross-engine transfers are misaligned. The build must
+include `NixlConnector`, `MultiConnector`, `OffloadingConnector` with
+`TieringOffloadingSpec` and the `p2p` secondary tier type,
+`kv_load_failure_policy`, and the ZMQ `--kv-events-config` publisher - all
+present in upstream main in that window; the smokes under
+"Verify before benchmarking" prove the stack end to end before any
+benchmark. The EPP and sidecar images above are public; the reference vLLM
+image is private (ask for pull access only if not building your own).
 
 ## Engine requirements
 
