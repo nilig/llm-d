@@ -8,7 +8,7 @@ OffloadingConnector with p2p tier). Both router configurations run the
 load-gated composition (`prefix-cache-affinity-filter` with
 `peakPrefillThroughput: 3585`, `maxTTFTPenaltyMs: 3500`, affinity threshold
 0.35, CPU tier weight 0.4; decode session affinity from `x-session-id` then
-`x-correlation-id`, TTL 3600 s). The cache-aware configuration additionally
+`x-correlation-id`, TTL 3600 s). The remaining-work configuration additionally
 sets `reusableTokensProducerName: p2p-cache-source` so `context-length-aware`
 routes on remaining prefill work; the total-length configuration routes on
 full context length. Exact manifests: [engines](engines/),
@@ -19,7 +19,7 @@ full context length. Exact manifests: [engines](engines/),
 ### Sustained C64 comparison, one counterbalanced block
 
 Campaign `c64-20260825-poststability-r3`: four runs in ABBA order
-(total-length, cache-aware, cache-aware, total-length), each with a joint
+(total-length, remaining-work, remaining-work, total-length), each with a joint
 engine restart, an EPP restart, a 120 s warmup, and a 900 s measured window
 over the `semianalysis_cc_traces_weka_062126` corpus at concurrency 64, seed
 `20260707`, `--cache-bust first-turn-prefix`. All four runs report
@@ -34,8 +34,8 @@ measured phase only.
 | Run (block order) | Measured turns | All p50 / p90 | Eligible p50 / p90 (n) | Long p50 | Short p50 (n) | P-short external-hit tokens |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Total-length routing (opening) | 1,730 | 9.96 / 69.78 | 16.55 / 87.50 (862) | 11.65 | 1.18 (360) | 10,688 |
-| Cache-aware routing, first | 1,753 | 8.93 / 54.72 | 9.75 / 58.66 (902) | 12.75 | 3.74 (360) | 42,220,608 |
-| Cache-aware routing, second | 1,821 | 7.66 / 44.69 | 7.05 / 45.53 (959) | 11.07 | 5.58 (355) | 44,088,704 |
+| Remaining-work routing, first | 1,753 | 8.93 / 54.72 | 9.75 / 58.66 (902) | 12.75 | 3.74 (360) | 42,220,608 |
+| Remaining-work routing, second | 1,821 | 7.66 / 44.69 | 7.05 / 45.53 (959) | 11.07 | 5.58 (355) | 44,088,704 |
 | Total-length routing (closing) | 1,618 | 10.83 / 69.24 | 19.91 / 94.49 (784) | 14.28 | 1.69 (360) | 31,424 |
 
 Position-matched pairs:
@@ -48,12 +48,12 @@ Position-matched pairs:
   69.51 s to 49.71 s (-28.5%).
 
 Mechanism evidence: P-short served 42.2M and 44.1M externally transferred
-prefix tokens in the cache-aware runs against 10,688 and 31,424 under
+prefix tokens in the remaining-work routing runs against 10,688 and 31,424 under
 total-length routing - three orders of magnitude, entirely policy-driven. The
-predicted-delay gate opened 832 and 543 times in the two cache-aware windows
+predicted-delay gate opened 832 and 543 times in the two remaining-work routing windows
 (`TTFT load gate broken` in the streamed EPP logs). Decode session affinity
 bound 261 and 262 sessions per run, matching the distinct
-`x-correlation-id` counts. The cache-aware runs also completed more measured
+`x-correlation-id` counts. The remaining-work routing runs also completed more measured
 turns in the same window (1,787 mean vs 1,674, +6.8%).
 
 Identified tradeoff: turns with short total context regress from 1.18-1.69 s
