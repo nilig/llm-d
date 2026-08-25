@@ -1,0 +1,14 @@
+NAME                                   READY   STATUS    RESTARTS   AGE    IP           NODE      NOMINATED NODE   READINESS GATES
+access-to-harness-data-workload-pvc    1/1     Running   0          35m    10.0.0.29    g80d16c   <none>           <none>
+inference-perf-8gmn6ydm                1/1     Running   0          93s    10.0.0.201   gf49e9c   <none>           <none>
+pd-pfirst-decode-0-6799997477-mzmtp    2/2     Running   0          50m    10.0.2.201   gd91fda   <none>           <none>
+pd-pfirst-decode-1-86448f7d6f-qjz5z    2/2     Running   0          50m    10.0.3.87    gf41fb2   <none>           <none>
+pd-pfirst-prefill-0-84f755ccff-94gl5   1/1     Running   0          50m    10.0.2.212   gd91fda   <none>           <none>
+pd-pfirst-prefill-0-84f755ccff-jsn7f   1/1     Running   0          50m    10.0.2.203   gd91fda   <none>           <none>
+pd-pfirst-prefill-0-84f755ccff-plqwv   1/1     Running   0          50m    10.0.2.234   gd91fda   <none>           <none>
+pd-pfirst-prefill-0-84f755ccff-z4tpw   1/1     Running   0          50m    10.0.2.251   gd91fda   <none>           <none>
+pd-pfirst-prefill-1-7644cf59c7-5lhjv   1/1     Running   0          50m    10.0.3.104   gf41fb2   <none>           <none>
+pd-pfirst-prefill-1-7644cf59c7-66dzl   1/1     Running   0          50m    10.0.3.66    gf41fb2   <none>           <none>
+pd-pfirst-prefill-1-7644cf59c7-95x4x   1/1     Running   0          50m    10.0.3.126   gf41fb2   <none>           <none>
+pd-pfirst-prefill-1-7644cf59c7-vwglw   1/1     Running   0          50m    10.0.3.92    gf41fb2   <none>           <none>
+topology-pfirst-epp-8558ff6cb-hpzjh    2/2     Running   0          2m6s   10.0.0.124   g80d16c   <none>           <none>

@@ -215,6 +215,27 @@ run-to-run tails vary substantially. Direct transfer telemetry is the clearer
 mechanistic result: same-node and cross-node 64K transfers both take about 50
 ms.
 
+## Prefill-first follow-up
+
+A follow-up on Waldorf compared both router stage orders with the baseline,
+topology filter, and topology scorer. The deployment explicitly selected CUDA
+KV buffers and the UCX NIXL backend, with UCX protocol diagnostics enabled.
+
+The first balanced block completed without failures. Prefill-first was faster
+than decode-first for all three plugin variants in that block, but a repeated
+prefill-first baseline had 22.6% higher mean TTFT than the first baseline. The
+planned three-block matrix was interrupted when other workloads consumed the
+decoder capacity, so the stage-order result is directional rather than
+conclusive. The strict prefill-first filter remained slower than the baseline
+in mean latency, while the scorer retained 26.6% remote routing and had the
+lowest mean latency in the first block.
+
+The logs confirmed CUDA buffers, UCX, and CUDA IPC availability. Measured 8K
+KV transfer throughput remained approximately 7.9-10.3 GB/s, so the deployment
+still did not expose an NVLink-class same-node advantage. See the
+[`prefill-first-waldorf` artifacts](prefill-first-waldorf/README.md) for the
+partial matrix, transport evidence, and exact inputs.
+
 ## Conclusion
 
 The topology plugins work functionally:
