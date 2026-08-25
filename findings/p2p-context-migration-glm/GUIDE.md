@@ -19,6 +19,42 @@ Measured results and the exact configuration behind them: [RESULTS.md](RESULTS.m
 All amd64. Digests are pinned in [engines](engines/) and
 [control-plane](control-plane/).
 
+## Deploy
+
+Everything needed is in this directory; nothing else is referenced:
+
+- Full `vllm serve` commands, including the `kv_transfer_config` JSON for the
+  `MultiConnector` (NixlConnector + TieringOffloadingSpec with the p2p tier):
+  [engines/prefill-runtime.json](engines/prefill-runtime.json) for both
+  prefillers, [engines/decode-runtime.json](engines/decode-runtime.json) for
+  decode. `OFFLOADING_MODE` selects the connector stack; the deployed mode is
+  `p2p-tiered`.
+- Pod specs, env knobs (`KV_OFFLOAD_CPU_BYTES`, `DP_SIZE_LOCAL`, probes,
+  volumes, `rdma/ib`): [engines/base](engines/base/) with per-class patches in
+  [engines/p-long](engines/p-long/), [engines/p-short](engines/p-short/), and
+  [engines/decode](engines/decode/).
+- EPP deployment, both router plugin configs, Envoy, pools, RBAC:
+  [control-plane](control-plane/).
+
+Render with the load restrictor off (the kustomizations patch base manifests
+by relative path):
+
+```bash
+kustomize build --load-restrictor LoadRestrictionsNone engines | kubectl apply -f -
+kustomize build --load-restrictor LoadRestrictionsNone control-plane | kubectl apply -f -
+```
+
+Per-cluster edits before applying: the `namespace` in every
+`kustomization.yaml`, the `kubernetes.io/hostname` affinity pins in
+[engines/p-long](engines/p-long/kustomization.yaml)/[p-short](engines/p-short/kustomization.yaml)/[decode](engines/decode/kustomization.yaml),
+the HF token secret name, and `imagePullSecrets`. The `glm-5-2-render`
+Service (in [engines/services.yaml](engines/services.yaml)) must resolve for
+the EPP's `token-producer`; it is a podless Service over the prefill pods'
+vLLM ports.
+
+Image access: `quay.io/niliguy/vllm-openai` is private; ask for pull-secret
+access (the EPP and sidecar images are public).
+
 ## Engine requirements
 
 The [engines](engines/) kustomizations (base LWS manifests under
