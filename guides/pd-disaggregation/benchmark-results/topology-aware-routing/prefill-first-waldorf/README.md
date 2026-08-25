@@ -60,12 +60,19 @@ UCX backend, and `use_host_buffer: False`. UCX exposed an intra-node endpoint
 with `cuda_ipc/cuda` and `rc_mlx5` lanes, and the routing proxy used NIXL V2 for
 a decoder and prefill placed on the same node.
 
-During an all-local 8K filter run, vLLM reported a 73.125 MB KV payload with
-7.1-9.3 ms mean transfer time, or approximately 7.9-10.3 GB/s. That is not an
-NVLink-class advantage. The endpoint log proves that CUDA IPC was available;
-it does not prove that every payload selected the CUDA IPC lane. There was no
-evidence of a TCP-only fallback, but the measured connector throughput still
-did not create a large local-transfer benefit for the router to exploit.
+During an all-local 8K filter run, vLLM reported four TP-rank transfers per
+request. Each transfer contained 73.125 MiB and took 7.1-9.3 ms, or
+approximately 7.9-10.3 GB/s per rank. The full TP4 payload was therefore
+approximately 292.5 MiB per request. At 40 QPS, that is approximately 12.3
+GB/s of aggregate KV traffic. With approximately half the baseline routes
+crossing nodes, the inter-node payload was approximately 6.1 GB/s: about 1.8%
+of the estimated 340-GB/s application bandwidth across eight 400-Gb/s ports,
+or a conservative 14% if all remote traffic shares one such port.
+
+The endpoint log proves that CUDA IPC was available; it does not prove that
+every payload selected the CUDA IPC lane. There was no evidence of a TCP-only
+fallback, but the measured connector throughput still did not create a large
+local-transfer benefit for the router to exploit.
 
 See `transport-evidence.md` for the curated log excerpts.
 

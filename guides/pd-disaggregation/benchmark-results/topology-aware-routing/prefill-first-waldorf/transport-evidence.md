@@ -76,6 +76,18 @@ Avg xfer time (ms)=7.845, Avg MB per transfer=73.125, Throughput (MB/s)=9321.193
 Avg xfer time (ms)=7.119, Avg MB per transfer=73.125, Throughput (MB/s)=10271.392
 ```
 
-The observed range is approximately 7.9-10.3 GB/s. The logs do not show a
-TCP-only fallback, but this throughput is still far below an expected
+vLLM aggregates the telemetry across workers. At approximately 20 requests/s
+per decoder, each 10-second interval reported approximately 800 successful
+transfers. This corresponds to four transfers per request, matching the TP4
+decoder. Therefore, 73.125 MiB is the per-rank transfer and the full request
+payload is approximately 292.5 MiB.
+
+At 40 QPS, the resulting aggregate payload is approximately 12.3 GB/s. With
+approximately half the baseline routes crossing nodes, approximately 6.1 GB/s
+reaches the inter-node network. That is about 1.8% of an estimated 340 GB/s of
+application bandwidth across eight 400-Gb/s ports, or a conservative 14% if
+all remote traffic shares one such port.
+
+The observed per-rank range is approximately 7.9-10.3 GB/s. The logs do not
+show a TCP-only fallback, but this throughput is still far below an expected
 NVLink-class same-node path.

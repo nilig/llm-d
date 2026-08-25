@@ -167,9 +167,12 @@ effect.
 ### Connector telemetry
 
 The decoder's vLLM `KV Transfer metrics` expose the actual payload and transfer
-time. The NIXL backend reported at startup is `UCX` with CUDA buffers.
+time. The NIXL backend reported at startup is `UCX` with CUDA buffers. vLLM
+aggregates these observations across workers. With the TP4 decoder, the logs
+contain approximately four transfers per request, so each table row is a
+per-TP-rank transfer rather than the full request payload.
 
-| Input | Routing | KV per request | Mean transfer time | Effective throughput |
+| Input | Routing | KV per TP-rank transfer | Mean transfer time | Per-rank throughput |
 |---:|---|---:|---:|---:|
 | 8K | Local | 73.125 MB | 7.56-8.34 ms | 8.77-9.68 GB/s |
 | 16K | Remote | 145.125 MB | 15.63-16.23 ms | 8.94-9.29 GB/s |
@@ -177,12 +180,17 @@ time. The NIXL backend reported at startup is `UCX` with CUDA buffers.
 | 64K | Local | 577.125 MB | 49.83 ms | 11.58 GB/s |
 | 64K | Remote | 577.125 MB | 50.12-51.01 ms | 11.31-11.52 GB/s |
 
-The live nodes expose eight active NDR ports at 400 Gb/s each. At 40 QPS with
-8K prompts, aggregate KV traffic is approximately 2.925 GB/s, or 23.4 Gb/s,
-only 5.9% of one 400-Gb/s rail. More importantly, the measured end-to-end
-connector time for a 577-MB transfer is effectively the same locally and
-remotely. This deployment therefore does not realize a raw NVLink-versus-NDR
-gap in the metric that matters to the router.
+At 8K, the full TP4 payload is approximately 292.5 MiB per request. At 40 QPS,
+that is approximately 12.3 GB/s of aggregate KV traffic. The baseline sends
+49.6% of requests across nodes, or approximately 6.1 GB/s of inter-node
+payload. The live nodes expose eight active NDR ports at 400 Gb/s each. With a
+15% protocol-overhead allowance, 6.1 GB/s is approximately 1.8% of the
+estimated 340-GB/s application bandwidth. As a conservative upper bound, it
+is approximately 14% even if all remote traffic shares one 400-Gb/s port.
+More importantly, the measured end-to-end connector time for a 577-MB
+per-rank transfer is effectively the same locally and remotely. This
+deployment therefore does not realize a raw NVLink-versus-NDR gap in the
+metric that matters to the router.
 
 ## Sustainable 64K paired repeats
 
