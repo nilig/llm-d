@@ -18,6 +18,12 @@ full context length. Exact manifests: [engines](engines/),
 
 ### Sustained C64 comparison, one counterbalanced block
 
+Remaining-work routing cuts median TTFT for migration-eligible turns from
+18.1 s to 8.6 s (-52.7%) and fleet-wide p90 TTFT from 69.7 s to 48.4 s
+(-30.6%), while completing 6.8% more turns in the same measured window.
+
+![TTFT: remaining-work vs total-length routing](figures/c64-ttft.png)
+
 Campaign `c64-20260825-poststability-r3`: four runs in ABBA order
 (total-length, remaining-work, remaining-work, total-length), each with a joint
 engine restart, an EPP restart, a 120 s warmup, and a 900 s measured window
@@ -44,8 +50,9 @@ Position-matched pairs:
   p90 -21.6%.
 - Closing pair: eligible p50 19.91 s to 7.05 s (-64.6%); all-turns p50 -29.2%,
   p90 -35.5%.
-- Pooled: eligible p50 18.23 s to 8.40 s (-53.9%, 2.17x); all-turns p90
-  69.51 s to 49.71 s (-28.5%).
+- Pooled distributions (both runs per policy): eligible p50 18.1 s to 8.6 s
+  (-52.7%, 2.11x), eligible p90 91.6 s to 51.0 s (-44.3%); all-turns p50
+  10.3 s to 8.3 s (-19.3%), p90 69.7 s to 48.4 s (-30.6%).
 
 Mechanism evidence: P-short served 42.2M and 44.1M externally transferred
 prefix tokens in the remaining-work routing runs against 10,688 and 31,424 under
