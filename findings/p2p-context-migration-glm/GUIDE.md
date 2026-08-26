@@ -68,6 +68,15 @@ benchmark. The EPP and sidecar images above are public; the reference vLLM
 image is private (ask for pull access only if not building your own).
 
 ## Engine requirements
+Cold-start: the manifests load weights with `--load-format runai_streamer`
+(distributed loader, concurrency 16) and keep weight and compile caches on
+node-local hostPath volumes (`/mnt/local/hf-cache`, `/mnt/local/jit-cache`,
+with `VLLM_CACHE_ROOT` inside the latter). Keep both when adapting: without
+them a GLM-5.2 boot is ~20 minutes instead of ~8-10, and the benchmark
+harness restarts every engine once per run. The caches are per node, so the
+first boot on a never-used node still pays the full cold cost - budget one
+~20-minute boot when adding a node, then it stays warm.
+
 
 The [engines](engines/) kustomizations (base LWS manifests under
 [engines/base](engines/base/)) encode all of these; the list is what to
