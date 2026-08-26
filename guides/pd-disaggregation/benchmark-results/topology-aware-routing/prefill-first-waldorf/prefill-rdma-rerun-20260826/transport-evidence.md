@@ -44,7 +44,18 @@ lines 4,841-4,849.
 Forced-remote requests mapped the selected prefill to the other physical
 node. Each TP rank reported an `inter-node` CUDA-to-CUDA `ucp_get` and selected
 `rc_mlx5` for the large payload. No payload table selected TCP, POSIX shared
-memory, sockets, or CUDA IPC.
+memory, sockets, or CUDA IPC. One rank reported:
+
+```text
+[1787640283.679660] | ucp_context_0 inter-node cfg#6 | remote memory read by ucp_get*(multi) into cuda/GPU1 from cuda/dev[0]
+[1787640283.679672] |                              0 | copy-out           | rc_mlx5/ibp1:1/path0
+[1787640283.679673] |                          1..64 | software emulation | rc_mlx5/ibp1:1/path0
+[1787640283.679673] |                        65..inf | zero-copy          | rc_mlx5/ibp1:1 50% on path0 and 50% on path1
+```
+
+Source: local
+`tmp/topology-aware-prefill-first-waldorf/transport-logs/decode-0-modelserver.log`,
+lines 20,619-20,624.
 
 The 30-request forced-local and forced-remote gates both completed without an
 inference failure or model-pod change. Their aggregate request-latency reports
