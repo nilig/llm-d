@@ -75,6 +75,70 @@ environmental (pod placement rotates across joint restarts). Both pairs agree
 in sign and magnitude class; multi-block confidence intervals require
 `BLOCKS=5`.
 
+### Threshold-mitigated block: remaining-work routing vs engine-level HoL mitigation
+
+Answer to the question whether router-level migration still adds value once
+the prefill engines carry `--long-prefill-token-threshold`. Campaign
+`c64-20260826-lpt2048-b4096`, same ABBA design, with
+`--long-prefill-token-threshold 2048` and `--max-num-batched-tokens 4096` on
+both prefillers in BOTH router configurations; at this vLLM commit the
+threshold caps a long request's per-step chunk, so every scheduler step
+reserves at least 2,048 tokens for short prompts past a long prefill. The
+checked-in [engines/prefill-runtime.json](engines/prefill-runtime.json)
+carries this configuration; the unmitigated block below ran the same minus
+the threshold flag with `--max-num-batched-tokens 2048`.
+
+![TTFT under engine-level mitigation](figures/c64-ttft-lpt2048.png)
+
+All four runs valid with zero measured-phase errors. TTFT in seconds:
+
+| Run (block order) | Measured turns | All p50 / p90 | Eligible p50 / p90 (n) | Long p50 | Short p50 | P-short migration |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Total-length routing (opening) | 1,651 | 12.5 / 72.5 | 17.1 / 84.9 (825) | 18.7 | 1.2 | inactive |
+| Remaining-work routing, first | 1,729 | 9.8 / 59.1 | 11.5 / 65.9 (872) | 13.4 | 3.5 | active |
+| Remaining-work routing, second | 1,807 | 9.7 / 58.1 | 10.7 / 74.3 (920) | 13.1 | 5.4 | active |
+| Total-length routing (closing, rerun) | 1,555 | 10.8 / 74.6 | 15.9 / 90.2 (775) | 15.0 | 1.4 | inactive |
+
+Pooled distributions: eligible p50 16.6 s to 11.2 s (-32.7%), eligible p90
+88.6 s to 69.1 s (-22.0%); all-turns p50 11.7 s to 9.7 s (-17.2%), p90
+73.3 s to 58.9 s (-19.6%); long-delta p50 16.6 s to 13.3 s (-20.0%);
+short-total p50 1.3 s to 4.3 s (the known P-short cost). Turns completed:
+3,206 vs 3,536 (+10.3%). The load gate broke 717 and 543 times in the two
+remaining-work windows. Above roughly the 95th percentile the eligible-class
+curves cross: the extreme tail under remaining-work routing includes pulls
+from saturated sources.
+
+Three-way comparison on the eligible class (pooled p50):
+
+- Total-length routing, no engine mitigation: 18.1 s.
+- Total-length routing with the threshold: 16.6 s - the engine-level
+  mitigation recovers about 8%, consistent with the measured queueing being
+  KV-capacity-bound: capping long chunks frees compute slots, not KV blocks.
+- Remaining-work routing with the threshold: 11.2 s. The mechanisms compose;
+  migration is not replaced by the engine knob.
+
+Cross-block deltas carry a config confound (`--max-num-batched-tokens` 2,048
+vs 4,096); the within-block pairs are the claims.
+
+Engine-side findings from configuring the mitigation, all verified at vLLM
+commit `6f91edf9`:
+
+- The threshold requires step-budget headroom: with
+  `--max-num-batched-tokens` equal to the threshold, one long chunk fills
+  the step and nothing interleaves.
+- `--max-num-partial-prefills` and `--max-long-partial-prefills` no longer
+  exist; the arguments crash `vllm serve`.
+- Memory wall: GLM-5.2-FP8 with DeepEP on H200 cannot run an 8,192-token
+  step budget at any viable KV capacity. At GPU utilization 0.935 the
+  DeepGEMM warmup OOMs outside the reservation (~10.5 GiB needed, ~9 free);
+  at 0.85 the profiled activation peak consumes the whole reservation and
+  vLLM reports no available memory for cache blocks. 4,096/2,048 at 0.935
+  is the strongest feasible configuration on this hardware.
+- The original closing run was invalidated by a decode-internal crash (all
+  DP servers relaunched by the supervisor mid-window, the second such event;
+  the root trace rotated away both times). The rerun passed cleanly with a
+  rotation-proof decode log stream armed for any recurrence.
+
 ### Workload pattern fit
 
 From the same corpus's per-turn data (1,406 measured turns, 184
