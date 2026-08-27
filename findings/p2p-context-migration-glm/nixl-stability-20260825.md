@@ -85,3 +85,40 @@ forward: never restart one engine of the P/D set alone; a partial restart
 leaves surviving peers with stale NIXL endpoints and reproduces this failure.
 The `run-agentx.sh` joint-restart-per-arm procedure already enforces this for
 benchmark runs.
+
+## Waldorf incident 2026-08-26: crash-restart wedge and zombie-peer segfault
+
+Two distinct failure modes observed on the Llama single-GPU fleet
+(cache-route-bench, image nightly-6f91edf9-pr50302), both downstream of one
+engine death during the first P-short sizing run.
+
+1. Offload-region restart wedge. `TieringOffloadingSpec` backs its CPU tier
+   with `/dev/shm/vllm_offload_<uuid>.mmap` (17.18 GB here) inside the pod's
+   `dshm` emptyDir (`medium: Memory`, sizeLimit 24Gi). A crashed container
+   does not remove the file, and the emptyDir survives container restarts,
+   so the next boot allocates a second region, overshoots the tmpfs limit,
+   and dies at `SharedOffloadRegion.__init__` -> `mmap_obj.madvise` with
+   `OSError: [Errno 14] Bad address`. Every in-place restart after an engine
+   crash wedges permanently (observed on decode, 6 restarts, and on P-short,
+   restart 1). Recovery requires pod deletion (fresh emptyDir). Upstream
+   filing candidate alongside the prefix-shortfall assert: cleanup of stale
+   `vllm_offload_*.mmap` files at region init, or an mmap failure message
+   that names the actual cause.
+
+2. Zombie-peer rkey segfault. The crash-looping decode pod's boot attempts
+   repeatedly joined the NIXL mesh. At 15:12:36 its connection to the
+   healthy P-long triggered `UCX ERROR mlx5dv_devx_obj_modify(opcode=0x503)
+   failed, syndrome 0x5d668c: Remote I/O error` followed by a native
+   segfault: `nixlAgent::loadRemoteMD` -> `nixlUcxEngine::internalMDHelper`
+   -> `ucp_ep_rkey_unpack`. P-long's EngineCore died while serving. P-short
+   died the same way minutes later when the recreated decode joined the mesh
+   while P-short still held metadata for the dead decode IP. Same class as
+   the stale-endpoint rule above, with a sharper corollary: a CrashLoopBackOff
+   peer is an active hazard to healthy engines, not a passive absence. Its
+   Deployment must be scaled to zero or the whole set restarted jointly;
+   letting it loop poisons the mesh.
+
+Consequence for the sizing runs: the arm-1 429 storm was decode's engine
+death (no decode endpoint -> router sheds all requests), compounded by
+generator workers that retried without backoff. Generator v2 adds per-worker
+backoff and moves capacity pressure to the direct P-long service.
